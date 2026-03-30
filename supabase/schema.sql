@@ -76,8 +76,8 @@ begin
 
   if is_premium and topic_count >= 25 then
     raise exception 'Premium plan allows a maximum of 25 topics';
-  elsif not is_premium and topic_count >= 3 then
-    raise exception 'Free plan allows a maximum of 3 topics. Upgrade to Premium for more.';
+  elsif not is_premium and topic_count >= 8 then
+    raise exception 'Free plan allows a maximum of 8 topics. Upgrade to Premium for more.';
   end if;
 
   return new;

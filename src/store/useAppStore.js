@@ -172,9 +172,9 @@ const useAppStore = create(
       // --- TOPICS ---
       addTopic: async (name, emoji = '⭐') => {
         const { user, topics, isPremium } = get()
-        const limit = isPremium ? 25 : 3
+        const limit = isPremium ? 25 : 8
         if (topics.length >= limit) {
-          throw new Error(isPremium ? 'Maximum 25 topics reached' : 'Free tier allows up to 3 topics')
+          throw new Error(isPremium ? 'Maximum 25 topics reached' : 'Free tier allows up to 8 topics')
         }
 
         const newTopic = {
@@ -303,6 +303,8 @@ const useAppStore = create(
             todayCheckin: { ...checkin, topic_entries: topicEntriesData },
             checkInSubmitted: true,
           })
+          // Refresh history so Trends updates immediately
+          get().loadHistory()
         } else {
           // Mock mode
           const mockedCheckin = {
