@@ -127,18 +127,22 @@ export default function OnboardingPage() {
           <div className="text-center animate-fade-in">
             <div className="text-7xl mb-6">🌿</div>
             <h1 className="text-3xl font-semibold text-sage-800 mb-4">Welcome to Innermark</h1>
-            <p className="text-warm-600 text-base leading-relaxed mb-6">
-              Most of us move through life on autopilot. Innermark helps you slow down and actually look at what's happening — not to judge yourself, but to understand yourself.
+            <p className="text-warm-600 text-base leading-relaxed mb-4">
+              Most of us move through life on autopilot — reacting, surviving, getting through the day.
+            </p>
+            <p className="text-warm-600 text-base leading-relaxed mb-4">
+              Innermark is a daily practice of slowing down and actually looking at what's happening across the areas of your life that matter most.
             </p>
             <p className="text-warm-500 text-sm leading-relaxed mb-8">
-              Each day, you'll check in on the areas of life that matter to you. There are no right answers. The goal isn't to be green every day — it's to be honest.
+              Not to judge yourself. Not to perform. Just to understand — honestly, and with compassion.
             </p>
             <div className="space-y-3 text-left bg-white rounded-2xl p-5 shadow-sm border border-warm-100 mb-8">
               {[
-                { icon: '🎯', text: 'Choose areas of life to track' },
-                { icon: '🔴🟡🟢', text: 'Tap a color daily — takes 60 seconds' },
-                { icon: '📊', text: 'Watch patterns emerge over time' },
-                { icon: '💡', text: 'Receive gentle insights and support' },
+                { icon: '🎯', text: 'Choose the areas of life you want to pay attention to' },
+                { icon: '🔴🟡🟢', text: 'Check in honestly each day — takes 60 seconds' },
+                { icon: '📊', text: 'Watch real patterns emerge over time' },
+                { icon: '🧭', text: 'Set intentions. Not goals — direction.' },
+                { icon: '💡', text: 'Receive insights rooted in self-compassion and growth' },
               ].map(item => (
                 <div key={item.icon} className="flex items-center gap-3">
                   <span className="text-lg">{item.icon}</span>
@@ -159,21 +163,26 @@ export default function OnboardingPage() {
               <div className="text-4xl mb-3">🪞</div>
               <h2 className="text-2xl font-semibold text-sage-800 mb-3">Before you choose</h2>
               <p className="text-warm-600 text-sm leading-relaxed">
-                Take a moment. Think about the last few weeks of your life.
+                Think about the last week of your life. Sit with these questions — you don't need to answer them out loud, just let them land.
               </p>
             </div>
-            <div className="space-y-4 mb-8">
+            <div className="space-y-3 mb-6">
               {[
                 { q: 'What areas felt alive or energized?', icon: '✨' },
-                { q: 'What felt heavy, stuck, or painful?', icon: '🌧️' },
-                { q: 'What have you been avoiding or ignoring?', icon: '👀' },
-                { q: 'What do you most want to grow or heal?', icon: '🌱' },
+                { q: 'What felt heavy, stuck, or hard?', icon: '🌧️' },
+                { q: 'What have you been ignoring?', icon: '👀' },
+                { q: 'What do you most want to grow — or heal?', icon: '🌱' },
               ].map(item => (
                 <div key={item.q} className="flex gap-3 bg-white rounded-2xl p-4 border border-warm-100 shadow-sm">
                   <span className="text-xl mt-0.5">{item.icon}</span>
                   <p className="text-warm-700 text-sm leading-relaxed">{item.q}</p>
                 </div>
               ))}
+            </div>
+            <div className="bg-sage-50 rounded-2xl p-4 border border-sage-100 mb-6">
+              <p className="text-xs text-sage-700 leading-relaxed italic">
+                "The quality of your life is in direct proportion to the quality of questions you're willing to ask yourself."
+              </p>
             </div>
             <p className="text-center text-xs text-warm-400 mb-6">
               Let your answers guide which areas you choose to track.
@@ -193,8 +202,8 @@ export default function OnboardingPage() {
             <div className="text-center mb-5">
               <div className="text-4xl mb-2">🎯</div>
               <h2 className="text-2xl font-semibold text-sage-800">Choose your areas</h2>
-              <p className="text-warm-500 text-sm mt-1">
-                Pick 3–8 areas that feel most alive or most unresolved right now
+              <p className="text-warm-500 text-sm mt-1 leading-relaxed">
+                Pick 3–8 areas that feel most alive or most unresolved right now. There are no right answers — only honest ones.
               </p>
             </div>
 
@@ -291,8 +300,11 @@ export default function OnboardingPage() {
             <div className="text-center mb-5">
               <div className="text-4xl mb-2">🧭</div>
               <h2 className="text-2xl font-semibold text-sage-800 mb-2">Set your intentions</h2>
-              <p className="text-warm-500 text-sm leading-relaxed">
-                For each area, describe what a <em>good day</em> looks like to you. This becomes your personal compass — not a standard to perform, but a direction to move toward.
+              <p className="text-warm-500 text-sm leading-relaxed mb-3">
+                An intention is not a goal. A goal is something you achieve or fail. An intention is a <em>direction</em> — something you move toward, even imperfectly.
+              </p>
+              <p className="text-warm-400 text-xs leading-relaxed">
+                For each area, answer: what does a good day feel like to you? This becomes your personal compass.
               </p>
             </div>
 
@@ -369,8 +381,11 @@ export default function OnboardingPage() {
           <div className="text-center animate-fade-in">
             <div className="text-6xl mb-4">🌿</div>
             <h2 className="text-2xl font-semibold text-sage-800 mb-2">You're ready</h2>
-            <p className="text-warm-600 text-sm mb-5 leading-relaxed">
-              You've taken the first step — choosing to pay attention. That's more than most people do.
+            <p className="text-warm-600 text-sm mb-3 leading-relaxed">
+              You've taken the first step — choosing to pay attention. That's more than most people ever do.
+            </p>
+            <p className="text-warm-400 text-xs mb-5 leading-relaxed">
+              Check in honestly. No performance, no pressure. Just you, showing up for yourself.
             </p>
             <div className="flex flex-wrap justify-center gap-2 mb-6">
               {selectedTopics.map(t => (

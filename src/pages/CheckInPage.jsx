@@ -167,6 +167,11 @@ export default function CheckInPage() {
         onSettings={() => setShowSettings(true)}
       />
 
+      {/* Daily framing */}
+      <p className="text-xs text-warm-400 italic text-center mb-4">
+        Check in honestly. No performance, no pressure.
+      </p>
+
       {/* Progress bar */}
       <div className="mb-5">
         <div className="flex justify-between items-center mb-1.5">

@@ -145,13 +145,18 @@ export default function SupportPage() {
 
       {/* COACHING */}
       {activeTab === 'coaching' && (
-        <div className="animate-fade-in">
-          <div className="card text-center py-8 mb-4">
+        <div className="animate-fade-in space-y-4">
+          <div className="card bg-sage-50 border-sage-200 mb-2">
+            <p className="text-sm text-sage-700 leading-relaxed italic mb-0">
+              "I've been through it. I know the terrain — the disorientation, the breakthroughs, the hard days after. I offer coaching rooted in real experience, not textbooks."
+            </p>
+          </div>
+
+          <div className="card text-center py-6">
             <div className="text-5xl mb-4">🤝</div>
-            <h2 className="text-lg font-semibold text-sage-800 mb-2">Work with a Coach</h2>
+            <h2 className="text-lg font-semibold text-sage-800 mb-2">Work 1:1 with a Coach</h2>
             <p className="text-sm text-warm-500 leading-relaxed mb-6">
-              Sometimes the patterns we notice deserve more than a check-in.
-              Book a 1:1 session to work through what's coming up.
+              Sometimes what you're seeing in your check-ins deserves more than a reflection. A session creates space to go deeper — to make sense of patterns, work through what's stuck, and find your next step.
             </p>
             <a
               href="https://placeholder-coaching-url.com"
@@ -161,23 +166,31 @@ export default function SupportPage() {
             >
               Book a Session →
             </a>
+            <p className="text-xs text-warm-400 mt-3">Sessions available via video or phone</p>
           </div>
 
-          <div className="card bg-sage-50 border-sage-200">
-            <h3 className="text-sm font-semibold text-sage-800 mb-2">What coaching offers</h3>
+          <div className="card">
+            <h3 className="text-sm font-semibold text-warm-700 mb-3">This coaching is for you if...</h3>
             <ul className="space-y-2">
               {[
-                'A safe, confidential space to explore patterns',
-                'Support with shame, relationships, and personal growth',
-                'Practical tools grounded in research',
-                'Consistent accountability and encouragement',
+                "You've had a psychedelic or plant medicine experience and want support integrating it",
+                "You're noticing patterns in your life that you're ready to understand more deeply",
+                "You want a grounded, experienced guide — not a therapist, not a guru",
+                "You're ready to move from awareness into action",
               ].map((item, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-sage-700">
+                <li key={i} className="flex items-start gap-2 text-sm text-warm-700">
                   <span className="text-sage-500 mt-0.5">✓</span>
                   {item}
                 </li>
               ))}
             </ul>
+          </div>
+
+          <div className="card">
+            <h3 className="text-sm font-semibold text-warm-700 mb-2">What to expect</h3>
+            <p className="text-xs text-warm-500 leading-relaxed">
+              Sessions are 60 minutes. No agenda imposed on you — we follow what's alive. Between sessions, Innermark keeps you tracking so we have real data to work with, not just memory.
+            </p>
           </div>
         </div>
       )}
