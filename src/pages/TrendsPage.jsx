@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { format, subDays, eachDayOfInterval, parseISO, isWithinInterval, startOfWeek, endOfWeek } from 'date-fns'
+import { format, subDays, eachDayOfInterval, parseISO } from 'date-fns'
 import useAppStore from '../store/useAppStore'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import PremiumPrompt from '../components/ui/PremiumPrompt'
@@ -19,22 +19,23 @@ const STATUS_COLOR = {
   null: '#e8e0d2',
 }
 
-const STATUS_SCORE = { green: 2, yellow: 1, red: 0, null: -1 }
-
 export default function TrendsPage() {
   const { topics, history, isPremium, historyLoaded } = useAppStore()
   const [selectedRange, setSelectedRange] = useState('7')
-  const [viewMode, setViewMode] = useState('grid') // grid | chart
+  const [viewMode, setViewMode] = useState('grid')
   const [showPremiumPrompt, setShowPremiumPrompt] = useState(false)
 
   const range = RANGES.find(r => r.id === selectedRange)
 
-  // Date range
+  // Date range — endDate is today, startDate goes back N days inclusive
   const endDate = new Date()
-  const startDate = range.days ? subDays(endDate, range.days - 1) : (
-    history.length > 0 ? parseISO(history[history.length - 1].date) : subDays(endDate, 29)
-  )
+  const startDate = range.days
+    ? subDays(endDate, range.days - 1)
+    : history.length > 0
+      ? parseISO(history[history.length - 1].date)
+      : subDays(endDate, 29)
 
+  // All days in range, oldest → newest
   const allDays = eachDayOfInterval({ start: startDate, end: endDate })
 
   // Build lookup: date -> { topicId -> status }
@@ -49,14 +50,31 @@ export default function TrendsPage() {
     return map
   }, [history])
 
-  // Streak calculation
+  // Per-topic totals across selected range
+  const topicTotals = useMemo(() => {
+    const totals = {}
+    topics.forEach(t => {
+      totals[t.id] = { green: 0, yellow: 0, red: 0, total: 0 }
+    })
+    allDays.forEach(day => {
+      const dateStr = format(day, 'yyyy-MM-dd')
+      const dayData = dataMap[dateStr] || {}
+      topics.forEach(t => {
+        const status = dayData[t.id]
+        if (status) {
+          totals[t.id][status]++
+          totals[t.id].total++
+        }
+      })
+    })
+    return totals
+  }, [allDays, dataMap, topics])
+
+  // Streak calculation (all-green days in a row going back from yesterday)
   const streaks = useMemo(() => {
     let currentStreak = 0
-    const today = format(new Date(), 'yyyy-MM-dd')
-    // Walk backwards
-    for (let i = 0; i < 365; i++) {
+    for (let i = 1; i < 365; i++) {
       const date = format(subDays(new Date(), i), 'yyyy-MM-dd')
-      if (date === today) continue // skip today if not checked in
       const dayData = dataMap[date]
       if (!dayData) break
       const statuses = Object.values(dayData)
@@ -69,31 +87,26 @@ export default function TrendsPage() {
     return currentStreak
   }, [dataMap])
 
-  // Bar chart data
+  // Bar chart data — use all days in range
   const chartData = useMemo(() => {
-    return allDays.slice(-30).map(day => {
+    return allDays.map(day => {
       const dateStr = format(day, 'yyyy-MM-dd')
       const dayData = dataMap[dateStr] || {}
       const statuses = Object.values(dayData)
       if (statuses.length === 0) return { date: format(day, 'M/d'), score: null, dateStr }
-
       const greenCount = statuses.filter(s => s === 'green').length
-      const total = statuses.length
-      const score = Math.round((greenCount / total) * 100)
+      const score = Math.round((greenCount / statuses.length) * 100)
       return { date: format(day, 'M/d'), score, dateStr }
     })
   }, [allDays, dataMap])
 
-  function handleRangeSelect(range) {
-    if (range.premium && !isPremium) {
+  function handleRangeSelect(r) {
+    if (r.premium && !isPremium) {
       setShowPremiumPrompt(true)
       return
     }
-    setSelectedRange(range.id)
+    setSelectedRange(r.id)
   }
-
-  // Limit grid to 30 days for readability
-  const gridDays = allDays.slice(-Math.min(allDays.length, selectedRange === '7' ? 7 : 30))
 
   if (!historyLoaded) {
     return (
@@ -138,37 +151,27 @@ export default function TrendsPage() {
                 : 'bg-warm-100 text-warm-600 hover:bg-warm-200'
             }`}
           >
-            {r.label}
-            {r.premium && !isPremium && ' ✨'}
+            {r.label}{r.premium && !isPremium && ' ✨'}
           </button>
         ))}
       </div>
 
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-3 mb-5">
-        <StatCard
-          value={streaks}
-          label={streaks === 1 ? 'day streak' : 'day streak'}
-          icon="🔥"
-          highlight={streaks >= 3}
-        />
+        <StatCard value={streaks} label="day streak" icon="🔥" highlight={streaks >= 3} />
         <StatCard
           value={history.filter(h => {
-            const statuses = h.topic_entries?.map(e => e.status) || []
-            return statuses.length > 0 && statuses.every(s => s === 'green')
+            const s = h.topic_entries?.map(e => e.status) || []
+            return s.length > 0 && s.every(s => s === 'green')
           }).length}
           label="all-green days"
           icon="🌿"
         />
-        <StatCard
-          value={history.length}
-          label="check-ins"
-          icon="✅"
-        />
+        <StatCard value={history.length} label="check-ins" icon="✅" />
       </div>
 
       {viewMode === 'grid' ? (
-        <GridView topics={topics} gridDays={gridDays} dataMap={dataMap} />
+        <GridView topics={topics} allDays={allDays} dataMap={dataMap} topicTotals={topicTotals} />
       ) : (
         <ChartView chartData={chartData} />
       )}
@@ -194,55 +197,121 @@ function StatCard({ value, label, icon, highlight }) {
   )
 }
 
-function GridView({ topics, gridDays, dataMap }) {
+function GridView({ topics, allDays, dataMap, topicTotals }) {
+  // For the scrollable grid, show most recent days (up to 14 columns for readability)
+  // Full totals are shown in the ratio column regardless of visible window
+  const maxCols = 14
+  const gridDays = allDays.slice(-maxCols)
+
   return (
-    <div className="card overflow-hidden p-0">
-      <div className="overflow-x-auto">
-        <table className="w-full text-xs">
-          <thead>
-            <tr className="border-b border-warm-100">
-              <th className="text-left p-3 text-warm-400 font-medium w-24 sticky left-0 bg-white">Topic</th>
-              {gridDays.map(day => (
-                <th key={day.toISOString()} className="p-1.5 text-warm-400 font-medium text-center min-w-[2rem]">
-                  <div>{format(day, 'EEE')[0]}</div>
-                  <div>{format(day, 'd')}</div>
+    <div className="space-y-3">
+      {/* Scrollable day grid */}
+      <div className="card overflow-hidden p-0">
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b border-warm-100">
+                <th className="text-left p-3 text-warm-400 font-medium sticky left-0 bg-white z-10 min-w-[100px]">
+                  Topic
                 </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {topics.map(topic => (
-              <tr key={topic.id} className="border-b border-warm-50">
-                <td className="p-3 text-warm-700 font-medium sticky left-0 bg-white whitespace-nowrap">
-                  <span className="mr-1">{topic.emoji}</span>
-                  <span className="text-xs">{topic.name.length > 10 ? topic.name.slice(0, 9) + '…' : topic.name}</span>
-                </td>
-                {gridDays.map(day => {
-                  const dateStr = format(day, 'yyyy-MM-dd')
-                  const status = dataMap[dateStr]?.[topic.id]
-                  return (
-                    <td key={day.toISOString()} className="p-1.5 text-center">
-                      <div
-                        className="w-6 h-6 rounded-full mx-auto transition-all"
-                        style={{ backgroundColor: STATUS_COLOR[status || null] }}
-                        title={status || 'No data'}
-                      />
-                    </td>
-                  )
-                })}
+                {gridDays.map(day => (
+                  <th key={day.toISOString()} className="p-1.5 text-warm-400 font-medium text-center min-w-[2rem]">
+                    <div>{format(day, 'EEE')[0]}</div>
+                    <div>{format(day, 'd')}</div>
+                  </th>
+                ))}
+                <th className="p-2 text-warm-400 font-medium text-center min-w-[80px] sticky right-0 bg-white z-10">
+                  Totals
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {topics.map(topic => {
+                const totals = topicTotals[topic.id] || { green: 0, yellow: 0, red: 0, total: 0 }
+                return (
+                  <tr key={topic.id} className="border-b border-warm-50">
+                    <td className="p-3 text-warm-700 font-medium sticky left-0 bg-white z-10 whitespace-nowrap">
+                      <span className="mr-1">{topic.emoji}</span>
+                      <span className="text-xs">{topic.name.length > 10 ? topic.name.slice(0, 9) + '…' : topic.name}</span>
+                    </td>
+                    {gridDays.map(day => {
+                      const dateStr = format(day, 'yyyy-MM-dd')
+                      const status = dataMap[dateStr]?.[topic.id]
+                      return (
+                        <td key={day.toISOString()} className="p-1.5 text-center">
+                          <div
+                            className="w-6 h-6 rounded-full mx-auto transition-all"
+                            style={{ backgroundColor: STATUS_COLOR[status || null] }}
+                            title={status || 'No data'}
+                          />
+                        </td>
+                      )
+                    })}
+                    {/* Totals column */}
+                    <td className="p-2 sticky right-0 bg-white z-10">
+                      <div className="flex flex-col gap-0.5 items-center text-xs">
+                        {totals.total > 0 ? (
+                          <>
+                            <span className="text-green-600 font-medium">🟢 {totals.green}</span>
+                            <span className="text-yellow-500 font-medium">🟡 {totals.yellow}</span>
+                            <span className="text-red-500 font-medium">🔴 {totals.red}</span>
+                            <span className="text-warm-300 mt-0.5">{totals.total}d</span>
+                          </>
+                        ) : (
+                          <span className="text-warm-200">—</span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Legend */}
+        <div className="flex gap-4 p-3 border-t border-warm-100 justify-center">
+          {[['green', 'Good'], ['yellow', 'Neutral'], ['red', 'Hard'], [null, 'No data']].map(([s, label]) => (
+            <div key={label} className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: STATUS_COLOR[s] }} />
+              <span className="text-xs text-warm-400">{label}</span>
+            </div>
+          ))}
+        </div>
       </div>
-      <div className="flex gap-4 p-3 border-t border-warm-100 justify-center">
-        {[['green', 'Good'], ['yellow', 'Neutral'], ['red', 'Hard'], [null, 'No data']].map(([s, label]) => (
-          <div key={label} className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: STATUS_COLOR[s] }} />
-            <span className="text-xs text-warm-400">{label}</span>
+
+      {/* Per-topic ratio bars */}
+      {topics.length > 0 && (
+        <div className="card">
+          <h3 className="text-sm font-semibold text-warm-600 mb-3">Overall breakdown</h3>
+          <div className="space-y-3">
+            {topics.map(topic => {
+              const t = topicTotals[topic.id] || { green: 0, yellow: 0, red: 0, total: 0 }
+              if (t.total === 0) return null
+              const gPct = Math.round((t.green / t.total) * 100)
+              const yPct = Math.round((t.yellow / t.total) * 100)
+              const rPct = 100 - gPct - yPct
+              return (
+                <div key={topic.id}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-warm-700">
+                      {topic.emoji} {topic.name}
+                    </span>
+                    <span className="text-xs text-warm-400">
+                      🟢{t.green} 🟡{t.yellow} 🔴{t.red}
+                    </span>
+                  </div>
+                  <div className="flex h-2 rounded-full overflow-hidden">
+                    {gPct > 0 && <div style={{ width: `${gPct}%`, backgroundColor: STATUS_COLOR.green }} />}
+                    {yPct > 0 && <div style={{ width: `${yPct}%`, backgroundColor: STATUS_COLOR.yellow }} />}
+                    {rPct > 0 && <div style={{ width: `${rPct}%`, backgroundColor: STATUS_COLOR.red }} />}
+                  </div>
+                </div>
+              )
+            })}
           </div>
-        ))}
-      </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -258,7 +327,7 @@ function ChartView({ chartData }) {
             tick={{ fontSize: 10, fill: '#bfaa8e' }}
             tickLine={false}
             axisLine={false}
-            interval={Math.floor(chartData.length / 6)}
+            interval={Math.max(0, Math.floor(chartData.length / 8) - 1)}
           />
           <YAxis
             domain={[0, 100]}
