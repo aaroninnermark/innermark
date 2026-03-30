@@ -29,6 +29,7 @@ const useAppStore = create(
       // Settings
       reminderTime: null,
       celebrationsEnabled: true,
+      iconStyle: 'circles', // 'circles' | 'faces' | 'marks'
 
       // UI
       activeTab: 'checkin',
@@ -364,6 +365,7 @@ const useAppStore = create(
       // --- SETTINGS ---
       setReminderTime: (time) => set({ reminderTime: time }),
       setCelebrationsEnabled: (enabled) => set({ celebrationsEnabled: enabled }),
+      setIconStyle: (style) => set({ iconStyle: style }),
       setActiveTab: (tab) => set({ activeTab: tab }),
     }),
     {
@@ -371,6 +373,7 @@ const useAppStore = create(
       partialize: (state) => ({
         reminderTime: state.reminderTime,
         celebrationsEnabled: state.celebrationsEnabled,
+        iconStyle: state.iconStyle,
         onboardingComplete: state.onboardingComplete,
         activeTab: state.activeTab,
       }),

@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import useAppStore from '../../store/useAppStore'
 import TopicsManager from './TopicsManager'
+import { ICON_STYLES } from '../checkin/TopicCheckinRow'
 import toast from 'react-hot-toast'
 
 export default function SettingsModal({ onClose, onSignOut, isPremium, onUpgrade, userEmail }) {
-  const { reminderTime, celebrationsEnabled, setReminderTime, setCelebrationsEnabled } = useAppStore()
+  const { reminderTime, celebrationsEnabled, iconStyle, setReminderTime, setCelebrationsEnabled, setIconStyle } = useAppStore()
   const [activeSection, setActiveSection] = useState('main') // main | topics
 
   return (
@@ -97,6 +98,30 @@ export default function SettingsModal({ onClose, onSignOut, isPremium, onUpgrade
                       onChange={setCelebrationsEnabled}
                     />
                   </label>
+                </div>
+
+                <div className="card">
+                  <p className="text-sm font-medium text-warm-700 mb-3">🎨 Check-in Icon Style</p>
+                  <div className="space-y-2">
+                    {Object.entries(ICON_STYLES).map(([key, style]) => (
+                      <button
+                        key={key}
+                        onClick={() => setIconStyle(key)}
+                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl border transition-all ${
+                          iconStyle === key
+                            ? 'border-sage-400 bg-sage-50'
+                            : 'border-warm-100 hover:border-warm-200'
+                        }`}
+                      >
+                        <span className="text-sm text-warm-700">{style.label}</span>
+                        <div className="flex gap-1.5 text-xl">
+                          {style.preview.map((icon, i) => (
+                            <span key={i}>{icon}</span>
+                          ))}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
