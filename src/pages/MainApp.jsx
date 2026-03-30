@@ -4,10 +4,12 @@ import CheckInPage from './CheckInPage'
 import TrendsPage from './TrendsPage'
 import JournalPage from './JournalPage'
 import SupportPage from './SupportPage'
+import IntentionsPage from './IntentionsPage'
 
 const TABS = [
   { id: 'checkin', path: '/', label: 'Check In', icon: '🏠' },
   { id: 'trends', path: '/trends', label: 'Trends', icon: '📊' },
+  { id: 'intentions', path: '/intentions', label: 'Intentions', icon: '🧭' },
   { id: 'journal', path: '/journal', label: 'Journal', icon: '📝' },
   { id: 'support', path: '/support', label: 'Support', icon: '💡' },
 ]
@@ -27,6 +29,7 @@ export default function MainApp() {
       <Routes>
         <Route path="/" element={<CheckInPage />} />
         <Route path="/trends" element={<TrendsPage />} />
+        <Route path="/intentions" element={<IntentionsPage />} />
         <Route path="/journal" element={<JournalPage />} />
         <Route path="/support" element={<SupportPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
