@@ -2,20 +2,39 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import useAppStore from '../store/useAppStore'
 import toast from 'react-hot-toast'
-import { isSupabaseConfigured } from '../lib/supabase'
+import { supabase, isSupabaseConfigured } from '../lib/supabase'
 
 export default function AuthPage() {
-  const [mode, setMode] = useState('login') // 'login' | 'signup'
+  const [mode, setMode] = useState('login') // 'login' | 'signup' | 'forgot'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const { signIn, signUp } = useAppStore()
   const navigate = useNavigate()
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (!email || !password) return
 
+    if (mode === 'forgot') {
+      if (!email) return
+      setLoading(true)
+      try {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        })
+        if (error) throw error
+        toast.success('Password reset link sent! Check your email.')
+        setMode('login')
+      } catch (err) {
+        toast.error(err.message || 'Something went wrong')
+      } finally {
+        setLoading(false)
+      }
+      return
+    }
+
+    if (!email || !password) return
     setLoading(true)
     try {
       if (mode === 'login') {
@@ -37,7 +56,6 @@ export default function AuthPage() {
   }
 
   function handleDemoMode() {
-    // signIn with no credentials triggers demo mode
     signIn('', '')
     navigate('/')
   }
@@ -52,77 +70,136 @@ export default function AuthPage() {
       </div>
 
       <div className="w-full max-w-sm">
-        {/* Tab toggle */}
-        <div className="flex bg-warm-100 rounded-2xl p-1 mb-6">
-          {['login', 'signup'].map(m => (
+
+        {mode === 'forgot' ? (
+          // Forgot password view
+          <div>
+            <div className="text-center mb-6">
+              <h2 className="text-lg font-semibold text-warm-800">Reset your password</h2>
+              <p className="text-sm text-warm-400 mt-1">We'll send a reset link to your email</p>
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-warm-700 mb-1.5">Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="input-field"
+                  autoComplete="email"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-primary w-full text-center disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Sending...' : 'Send Reset Link'}
+              </button>
+            </form>
             <button
-              key={m}
-              onClick={() => setMode(m)}
-              className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${
-                mode === m
-                  ? 'bg-white text-sage-700 shadow-sm'
-                  : 'text-warm-500 hover:text-warm-700'
-              }`}
+              onClick={() => setMode('login')}
+              className="w-full text-center text-sm text-warm-400 hover:text-warm-600 mt-4"
             >
-              {m === 'login' ? 'Sign In' : 'Create Account'}
+              ← Back to sign in
             </button>
-          ))}
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-warm-700 mb-1.5">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className="input-field"
-              autoComplete="email"
-              required
-            />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-warm-700 mb-1.5">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder={mode === 'signup' ? 'At least 6 characters' : '••••••••'}
-              className="input-field"
-              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-              required
-              minLength={mode === 'signup' ? 6 : undefined}
-            />
-          </div>
+        ) : (
+          // Login / signup view
+          <>
+            <div className="flex bg-warm-100 rounded-2xl p-1 mb-6">
+              {['login', 'signup'].map(m => (
+                <button
+                  key={m}
+                  onClick={() => setMode(m)}
+                  className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${
+                    mode === m
+                      ? 'bg-white text-sage-700 shadow-sm'
+                      : 'text-warm-500 hover:text-warm-700'
+                  }`}
+                >
+                  {m === 'login' ? 'Sign In' : 'Create Account'}
+                </button>
+              ))}
+            </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn-primary w-full text-center disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="animate-spin">⏳</span>
-                {mode === 'login' ? 'Signing in...' : 'Creating account...'}
-              </span>
-            ) : (
-              mode === 'login' ? 'Sign In' : 'Create Account'
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-warm-700 mb-1.5">Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="input-field"
+                  autoComplete="email"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-warm-700 mb-1.5">Password</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder={mode === 'signup' ? 'At least 6 characters' : '••••••••'}
+                    className="input-field pr-12"
+                    autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                    required
+                    minLength={mode === 'signup' ? 6 : undefined}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(v => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-warm-400 hover:text-warm-600 text-lg select-none"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? '🙈' : '👁️'}
+                  </button>
+                </div>
+              </div>
+
+              {mode === 'login' && (
+                <div className="text-right">
+                  <button
+                    type="button"
+                    onClick={() => setMode('forgot')}
+                    className="text-xs text-sage-600 hover:text-sage-800"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-primary w-full text-center disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="animate-spin">⏳</span>
+                    {mode === 'login' ? 'Signing in...' : 'Creating account...'}
+                  </span>
+                ) : (
+                  mode === 'login' ? 'Sign In' : 'Create Account'
+                )}
+              </button>
+            </form>
+
+            {!isSupabaseConfigured && (
+              <div className="mt-4 text-center">
+                <div className="text-xs text-warm-400 mb-2">— or —</div>
+                <button onClick={handleDemoMode} className="btn-secondary w-full text-sm">
+                  Try Demo Mode
+                </button>
+                <p className="text-xs text-warm-400 mt-2">No account needed · Uses sample data</p>
+              </div>
             )}
-          </button>
-        </form>
-
-        {!isSupabaseConfigured && (
-          <div className="mt-4 text-center">
-            <div className="text-xs text-warm-400 mb-2">— or —</div>
-            <button
-              onClick={handleDemoMode}
-              className="btn-secondary w-full text-sm"
-            >
-              Try Demo Mode
-            </button>
-            <p className="text-xs text-warm-400 mt-2">No account needed · Uses sample data</p>
-          </div>
+          </>
         )}
 
         <p className="text-center text-xs text-warm-400 mt-6">
