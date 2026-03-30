@@ -5,8 +5,27 @@ import { ICON_STYLES } from '../checkin/TopicCheckinRow'
 import toast from 'react-hot-toast'
 
 export default function SettingsModal({ onClose, onSignOut, isPremium, onUpgrade, userEmail }) {
-  const { reminderTime, celebrationsEnabled, iconStyle, setReminderTime, setCelebrationsEnabled, setIconStyle } = useAppStore()
-  const [activeSection, setActiveSection] = useState('main') // main | topics
+  const { reminderTime, celebrationsEnabled, iconStyle, setReminderTime, setCelebrationsEnabled, setIconStyle, updateMarketingConsent, deleteAccount } = useAppStore()
+  const [activeSection, setActiveSection] = useState('main') // main | topics | account
+  const [marketingConsent, setMarketingConsentLocal] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+
+  async function handleMarketingToggle(val) {
+    setMarketingConsentLocal(val)
+    await updateMarketingConsent(val)
+    toast.success(val ? 'Marketing emails enabled' : 'Marketing emails disabled')
+  }
+
+  async function handleDeleteAccount() {
+    setDeleteLoading(true)
+    try {
+      await deleteAccount()
+    } catch (err) {
+      toast.error('Something went wrong. Please try again.')
+      setDeleteLoading(false)
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm">
@@ -27,6 +46,72 @@ export default function SettingsModal({ onClose, onSignOut, isPremium, onUpgrade
                 <h2 className="text-lg font-semibold text-warm-800">Manage Topics</h2>
               </div>
               <TopicsManager onClose={() => setActiveSection('main')} />
+            </>
+          ) : activeSection === 'account' ? (
+            <>
+              <div className="flex items-center gap-2 mb-5">
+                <button onClick={() => setActiveSection('main')} className="text-sage-600 text-sm">← Back</button>
+                <h2 className="text-lg font-semibold text-warm-800">Account</h2>
+              </div>
+
+              {/* Email */}
+              <div className="card mb-4">
+                <p className="text-xs text-warm-400 mb-1">Signed in as</p>
+                <p className="text-sm font-medium text-warm-800">{userEmail}</p>
+              </div>
+
+              {/* Marketing consent */}
+              <div className="card mb-4">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <div className="flex-shrink-0 mt-0.5">
+                    <ToggleSwitch
+                      checked={marketingConsent}
+                      onChange={handleMarketingToggle}
+                    />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-warm-700">Marketing emails</p>
+                    <p className="text-xs text-warm-400 mt-0.5 leading-relaxed">
+                      Receive occasional tips, new features, and resources on personal growth and integration. You can change this anytime.
+                    </p>
+                  </div>
+                </label>
+              </div>
+
+              {/* Delete account */}
+              <div className="card border-red-100 bg-red-50">
+                <p className="text-sm font-semibold text-red-700 mb-1">Delete Account</p>
+                <p className="text-xs text-red-500 mb-3 leading-relaxed">
+                  This permanently deletes your account, all topics, check-ins, notes, and data. This cannot be undone.
+                </p>
+                {!confirmDelete ? (
+                  <button
+                    onClick={() => setConfirmDelete(true)}
+                    className="w-full py-2 rounded-xl border border-red-300 text-red-600 text-sm font-medium hover:bg-red-100 transition-all"
+                  >
+                    Delete my account
+                  </button>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-xs text-red-600 font-medium text-center">Are you sure? This is permanent.</p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setConfirmDelete(false)}
+                        className="flex-1 py-2 rounded-xl border border-warm-200 text-warm-600 text-sm"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleDeleteAccount}
+                        disabled={deleteLoading}
+                        className="flex-1 py-2 rounded-xl bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-60"
+                      >
+                        {deleteLoading ? 'Deleting...' : 'Yes, delete everything'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </>
           ) : (
             <>
@@ -66,6 +151,14 @@ export default function SettingsModal({ onClose, onSignOut, isPremium, onUpgrade
                   className="card w-full flex items-center justify-between hover:border-warm-200"
                 >
                   <span className="text-sm font-medium text-warm-700">🎯 Manage Topics</span>
+                  <span className="text-warm-300">→</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveSection('account')}
+                  className="card w-full flex items-center justify-between hover:border-warm-200"
+                >
+                  <span className="text-sm font-medium text-warm-700">👤 Account & Privacy</span>
                   <span className="text-warm-300">→</span>
                 </button>
 

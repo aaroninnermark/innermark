@@ -9,6 +9,7 @@ export default function AuthPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [marketingConsent, setMarketingConsent] = useState(false)
   const [loading, setLoading] = useState(false)
   const { signIn, signUp } = useAppStore()
   const navigate = useNavigate()
@@ -45,7 +46,7 @@ export default function AuthPage() {
           toast.error('Password must be at least 6 characters')
           return
         }
-        await signUp(email, password)
+        await signUp(email, password, marketingConsent)
         toast.success('Check your email to confirm your account!')
       }
     } catch (err) {
@@ -172,6 +173,32 @@ export default function AuthPage() {
                     Forgot password?
                   </button>
                 </div>
+              )}
+
+              {mode === 'signup' && (
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <div className="relative mt-0.5 flex-shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={marketingConsent}
+                      onChange={e => setMarketingConsent(e.target.checked)}
+                      className="sr-only"
+                    />
+                    <div
+                      onClick={() => setMarketingConsent(v => !v)}
+                      className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+                        marketingConsent
+                          ? 'bg-sage-500 border-sage-500'
+                          : 'bg-white border-warm-300'
+                      }`}
+                    >
+                      {marketingConsent && <span className="text-white text-xs">✓</span>}
+                    </div>
+                  </div>
+                  <span className="text-xs text-warm-500 leading-relaxed">
+                    I'd like to receive occasional emails about tips, new features, and resources related to personal growth and integration. You can unsubscribe anytime.
+                  </span>
+                </label>
               )}
 
               <button

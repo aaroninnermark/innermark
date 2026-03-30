@@ -75,10 +75,19 @@ const useAppStore = create(
         })
       },
 
-      signUp: async (email, password) => {
+      signUp: async (email, password, marketingConsent = false) => {
         if (!isSupabaseConfigured) throw new Error('Supabase not configured')
         const { data, error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
+        // Save marketing consent to profile
+        if (data?.user) {
+          await supabase.from('profiles').upsert({
+            id: data.user.id,
+            email,
+            marketing_consent: marketingConsent,
+            marketing_consent_at: marketingConsent ? new Date().toISOString() : null,
+          })
+        }
         return data
       },
 
@@ -94,6 +103,35 @@ const useAppStore = create(
 
       signOut: async () => {
         if (isSupabaseConfigured) await supabase.auth.signOut()
+        set({
+          user: null,
+          isPremium: false,
+          topics: [],
+          history: [],
+          historyLoaded: false,
+          onboardingComplete: false,
+          todayCheckin: null,
+          currentEntries: {},
+          dayNote: '',
+          checkInSubmitted: false,
+        })
+      },
+
+      updateMarketingConsent: async (consent) => {
+        const { user } = get()
+        if (!user || !isSupabaseConfigured) return
+        await supabase.from('profiles').update({
+          marketing_consent: consent,
+          marketing_consent_at: consent ? new Date().toISOString() : null,
+        }).eq('id', user.id)
+      },
+
+      deleteAccount: async () => {
+        const { user } = get()
+        if (!user || !isSupabaseConfigured) return
+        // Delete all user data — RLS cascade handles most, profiles handles the rest
+        await supabase.from('profiles').delete().eq('id', user.id)
+        await supabase.auth.signOut()
         set({
           user: null,
           isPremium: false,

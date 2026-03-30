@@ -22,6 +22,8 @@ create table if not exists public.profiles (
   onboarding_complete boolean default false,
   reminder_time time,   -- e.g. '20:00'
   celebrations_enabled boolean default true,
+  marketing_consent boolean default false,  -- user opted in to marketing emails
+  marketing_consent_at timestamptz,         -- when they consented
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
