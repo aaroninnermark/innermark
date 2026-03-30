@@ -242,7 +242,7 @@ export default function CheckInPage() {
         )}
       </button>
 
-      {!isPremium && topics.length >= 3 && (
+      {!isPremium && topics.length >= 8 && (
         <button
           onClick={() => setShowPremiumPrompt(true)}
           className="w-full text-center mt-3 text-xs text-sage-600 hover:text-sage-800 transition-colors"

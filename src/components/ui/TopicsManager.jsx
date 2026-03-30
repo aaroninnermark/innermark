@@ -13,7 +13,7 @@ export default function TopicsManager() {
   const [loading, setLoading] = useState(false)
   const [dragging, setDragging] = useState(null)
 
-  const limit = isPremium ? 25 : 3
+  const limit = isPremium ? 25 : 8
   const canAdd = topics.length < limit
 
   async function handleAdd() {
@@ -71,8 +71,16 @@ export default function TopicsManager() {
 
   return (
     <div>
+      {/* Header with count */}
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-xs text-warm-500">
+          Your topics <span className="font-semibold text-warm-700">{topics.length}/{limit}</span>
+        </p>
+        <p className="text-xs text-warm-400">Drag ⠿ to reorder</p>
+      </div>
+
       {/* Topic list */}
-      <div className="space-y-2 mb-4">
+      <div className="space-y-2 mb-5">
         {topics.map((topic, i) => (
           <div
             key={topic.id}
@@ -84,7 +92,7 @@ export default function TopicsManager() {
               dragging === i ? 'opacity-50 scale-95' : ''
             }`}
           >
-            <span className="text-warm-300 text-sm">⠿</span>
+            <span className="text-warm-300 text-base select-none">⠿</span>
             <span className="text-xl">{topic.emoji}</span>
 
             {editingId === topic.id ? (
@@ -104,37 +112,34 @@ export default function TopicsManager() {
               <span className="flex-1 text-sm font-medium text-warm-800">{topic.name}</span>
             )}
 
-            <div className="flex gap-1">
+            <div className="flex gap-1 ml-auto">
               <button
-                onClick={() => {
-                  setEditingId(topic.id)
-                  setEditName(topic.name)
-                }}
-                className="text-warm-400 hover:text-sage-600 text-sm p-1"
+                onClick={() => { setEditingId(topic.id); setEditName(topic.name) }}
+                className="flex items-center gap-1 text-xs text-warm-400 hover:text-sage-600 bg-warm-50 hover:bg-sage-50 px-2 py-1 rounded-lg transition-all"
                 title="Rename"
               >
-                ✏️
+                ✏️ <span className="hidden sm:inline">Rename</span>
               </button>
               <button
                 onClick={() => handleArchive(topic.id)}
-                className="text-warm-400 hover:text-clay-500 text-sm p-1"
-                title="Archive"
+                className="flex items-center gap-1 text-xs text-warm-400 hover:text-red-500 bg-warm-50 hover:bg-red-50 px-2 py-1 rounded-lg transition-all"
+                title="Delete"
               >
-                🗑️
+                🗑️ <span className="hidden sm:inline">Delete</span>
               </button>
             </div>
           </div>
         ))}
 
         {topics.length === 0 && (
-          <p className="text-center text-warm-400 text-sm py-4">No topics yet</p>
+          <p className="text-center text-warm-400 text-sm py-4">No topics yet — add one below</p>
         )}
       </div>
 
-      {/* Add new topic */}
-      <div className="card border-dashed border-warm-200">
-        <p className="text-xs font-medium text-warm-500 mb-3">
-          Add topic ({topics.length}/{limit})
+      {/* Add new topic — prominent */}
+      <div className={`rounded-2xl border-2 p-4 transition-all ${canAdd ? 'border-sage-300 bg-sage-50' : 'border-warm-100 bg-warm-50 opacity-60'}`}>
+        <p className="text-sm font-semibold text-sage-700 mb-3">
+          ＋ Add a new topic
         </p>
 
         {/* Emoji picker */}
@@ -143,8 +148,8 @@ export default function TopicsManager() {
             <button
               key={emoji}
               onClick={() => setNewTopicEmoji(emoji)}
-              className={`text-xl p-1 rounded-lg transition-all ${
-                newTopicEmoji === emoji ? 'bg-sage-100 scale-110' : 'hover:bg-warm-100'
+              className={`text-xl p-1.5 rounded-lg transition-all ${
+                newTopicEmoji === emoji ? 'bg-sage-200 scale-110 shadow-sm' : 'hover:bg-warm-100'
               }`}
             >
               {emoji}
@@ -158,7 +163,7 @@ export default function TopicsManager() {
             value={newTopicName}
             onChange={e => setNewTopicName(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleAdd()}
-            placeholder="Topic name..."
+            placeholder="Topic name (e.g. Sleep, Parenting...)"
             className="input-field flex-1 text-sm"
             maxLength={40}
             disabled={!canAdd}
@@ -166,15 +171,15 @@ export default function TopicsManager() {
           <button
             onClick={handleAdd}
             disabled={!newTopicName.trim() || !canAdd || loading}
-            className="btn-primary px-4 disabled:opacity-40"
+            className="bg-sage-600 hover:bg-sage-700 text-white px-4 py-2 rounded-xl font-semibold text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {loading ? '…' : '+'}
+            {loading ? '…' : 'Add'}
           </button>
         </div>
 
-        {!isPremium && topics.length >= 3 && (
+        {!canAdd && (
           <p className="text-xs text-sage-600 mt-2">
-            ✨ Upgrade to Premium to add up to 25 topics
+            {isPremium ? 'Maximum 25 topics reached' : '✨ Upgrade to Premium to add up to 25 topics'}
           </p>
         )}
       </div>
