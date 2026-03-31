@@ -8,7 +8,9 @@ export default function AuthPage() {
   const [mode, setMode] = useState('login') // 'login' | 'signup' | 'forgot'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [marketingConsent, setMarketingConsent] = useState(false)
   const [loading, setLoading] = useState(false)
   const { signIn, signUp } = useAppStore()
@@ -44,6 +46,10 @@ export default function AuthPage() {
       } else {
         if (password.length < 6) {
           toast.error('Password must be at least 6 characters')
+          return
+        }
+        if (password !== confirmPassword) {
+          toast.error('Passwords do not match')
           return
         }
         await signUp(email, password, marketingConsent)
@@ -162,6 +168,37 @@ export default function AuthPage() {
                   </button>
                 </div>
               </div>
+
+              {mode === 'signup' && (
+                <div>
+                  <label className="block text-sm font-medium text-warm-700 mb-1.5">Confirm Password</label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={e => setConfirmPassword(e.target.value)}
+                      placeholder="Re-enter your password"
+                      className={`input-field pr-12 ${confirmPassword && password !== confirmPassword ? 'border-red-300' : confirmPassword && password === confirmPassword ? 'border-sage-400' : ''}`}
+                      autoComplete="new-password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(v => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-warm-400 hover:text-warm-600 text-lg select-none"
+                      tabIndex={-1}
+                    >
+                      {showConfirmPassword ? '🙈' : '👁️'}
+                    </button>
+                  </div>
+                  {confirmPassword && password !== confirmPassword && (
+                    <p className="text-xs text-red-500 mt-1">Passwords don't match</p>
+                  )}
+                  {confirmPassword && password === confirmPassword && (
+                    <p className="text-xs text-sage-600 mt-1">✓ Passwords match</p>
+                  )}
+                </div>
+              )}
 
               {mode === 'login' && (
                 <div className="text-right">
