@@ -39,7 +39,7 @@ export default function TopicCheckinRow({ topic, entry }) {
 
   const selectedStatus = entry?.status
   const note = entry?.note || ''
-  const icons = ICON_STYLES[iconStyle]?.icons || ICON_STYLES.circles.icons
+  const icons = ICON_STYLES[iconStyle || 'circles']?.icons || ICON_STYLES.circles.icons
 
   return (
     <div

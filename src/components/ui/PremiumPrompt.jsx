@@ -51,7 +51,7 @@ export default function PremiumPrompt({ onClose }) {
           {/* Features */}
           <div className="space-y-2 mb-5">
             {[
-              { icon: '🎯', text: 'Up to 25 topics (vs 3 free)' },
+              { icon: '🎯', text: 'Up to 25 topics (vs 8 free)' },
               { icon: '📊', text: 'Full history — no 30-day limit' },
               { icon: '📈', text: 'Advanced trends and patterns' },
               { icon: '💡', text: 'Full insights and teachings library' },

@@ -19,9 +19,9 @@ export const PLANS = {
   free: {
     name: 'Free',
     price: 0,
-    topicsLimit: 3,
+    topicsLimit: 8,
     historyDays: 30,
-    features: ['Up to 3 topics', '30 days of history', 'Daily check-ins', 'Basic trends'],
+    features: ['Up to 8 topics', '30 days of history', 'Daily check-ins', 'Basic trends'],
   },
   premium: {
     name: 'Premium',

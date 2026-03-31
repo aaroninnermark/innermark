@@ -158,7 +158,8 @@ const useAppStore = create(
             .single()
 
           const isPremium = profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing'
-          const onboardingComplete = profile?.onboarding_complete || false
+          // If DB says complete but they have no topics, send them back to onboarding
+          const onboardingComplete = (profile?.onboarding_complete && (topics?.length > 0)) || false
 
           // Load topics
           const { data: topics } = await supabase
@@ -412,8 +413,8 @@ const useAppStore = create(
         reminderTime: state.reminderTime,
         celebrationsEnabled: state.celebrationsEnabled,
         iconStyle: state.iconStyle,
-        onboardingComplete: state.onboardingComplete,
         activeTab: state.activeTab,
+        // onboardingComplete intentionally NOT persisted — always read from DB
       }),
     }
   )
