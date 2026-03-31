@@ -5,7 +5,7 @@ import { ICON_STYLES } from '../checkin/TopicCheckinRow'
 import toast from 'react-hot-toast'
 
 export default function SettingsModal({ onClose, onSignOut, isPremium, onUpgrade, userEmail }) {
-  const { reminderTime, celebrationsEnabled, iconStyle, setReminderTime, setCelebrationsEnabled, setIconStyle, updateMarketingConsent, deleteAccount } = useAppStore()
+  const { reminderTime, celebrationsEnabled, celebrationStyle, iconStyle, setReminderTime, setCelebrationsEnabled, setCelebrationStyle, setIconStyle, updateMarketingConsent, deleteAccount } = useAppStore()
   const [activeSection, setActiveSection] = useState('main') // main | topics | account
   const [marketingConsent, setMarketingConsentLocal] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -181,20 +181,38 @@ export default function SettingsModal({ onClose, onSignOut, isPremium, onUpgrade
                 </div>
 
                 <div className="card">
-                  <label className="flex items-center justify-between cursor-pointer">
-                    <div>
-                      <p className="text-sm font-medium text-warm-700">🎉 Celebrations</p>
-                      <p className="text-xs text-warm-400">Confetti on good days</p>
-                    </div>
-                    <ToggleSwitch
-                      checked={celebrationsEnabled}
-                      onChange={setCelebrationsEnabled}
-                    />
-                  </label>
+                  <p className="text-sm font-medium text-warm-700 mb-3">🎉 Celebration Style</p>
+                  <div className="space-y-2">
+                    {[
+                      { id: 'confetti', label: 'Confetti', desc: 'Animated confetti burst' },
+                      { id: 'message', label: 'Message only', desc: 'A short encouraging message' },
+                      { id: 'both', label: 'Both', desc: 'Confetti + message' },
+                      { id: 'none', label: 'Off', desc: 'No celebrations' },
+                    ].map(opt => (
+                      <button
+                        key={opt.id}
+                        onClick={() => setCelebrationStyle(opt.id)}
+                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl border transition-all ${
+                          (celebrationStyle || 'confetti') === opt.id
+                            ? 'border-sage-400 bg-sage-50'
+                            : 'border-warm-100 hover:border-warm-200'
+                        }`}
+                      >
+                        <div className="text-left">
+                          <p className="text-sm text-warm-700 font-medium">{opt.label}</p>
+                          <p className="text-xs text-warm-400">{opt.desc}</p>
+                        </div>
+                        {(celebrationStyle || 'confetti') === opt.id && (
+                          <span className="text-sage-500 text-sm">✓</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="card">
-                  <p className="text-sm font-medium text-warm-700 mb-3">🎨 Check-in Icon Style</p>
+                  <p className="text-sm font-medium text-warm-700 mb-1">🎨 Check-in Icon Style</p>
+                  <p className="text-xs text-warm-400 mb-3">Choose how your check-in options look</p>
                   <div className="space-y-2">
                     {Object.entries(ICON_STYLES).map(([key, style]) => (
                       <button

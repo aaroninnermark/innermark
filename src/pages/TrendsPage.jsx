@@ -27,15 +27,16 @@ export default function TrendsPage() {
 
   const range = RANGES.find(r => r.id === selectedRange)
 
-  // Date range — endDate is today, startDate goes back N days inclusive
-  const endDate = new Date()
+  // Date range — endDate is today (inclusive), startDate goes back N-1 days
+  const today = new Date()
+  const endDate = today
   const startDate = range.days
     ? subDays(endDate, range.days - 1)
     : history.length > 0
       ? parseISO(history[history.length - 1].date)
       : subDays(endDate, 29)
 
-  // All days in range, oldest → newest
+  // All days in range, oldest → newest, always includes today
   const allDays = eachDayOfInterval({ start: startDate, end: endDate })
 
   // Build lookup: date -> { topicId -> status }
@@ -70,13 +71,16 @@ export default function TrendsPage() {
     return totals
   }, [allDays, dataMap, topics])
 
-  // Streak calculation (all-green days in a row going back from yesterday)
+  // Streak calculation — start from today and go back
   const streaks = useMemo(() => {
     let currentStreak = 0
-    for (let i = 1; i < 365; i++) {
+    for (let i = 0; i < 365; i++) {
       const date = format(subDays(new Date(), i), 'yyyy-MM-dd')
       const dayData = dataMap[date]
-      if (!dayData) break
+      if (!dayData || Object.keys(dayData).length === 0) {
+        if (i === 0) continue // today not checked in yet, keep going back
+        break
+      }
       const statuses = Object.values(dayData)
       if (statuses.length > 0 && statuses.every(s => s === 'green')) {
         currentStreak++
@@ -87,16 +91,17 @@ export default function TrendsPage() {
     return currentStreak
   }, [dataMap])
 
-  // Bar chart data — use all days in range
+  // Bar chart data — use all days in range, only show days with data
   const chartData = useMemo(() => {
     return allDays.map(day => {
       const dateStr = format(day, 'yyyy-MM-dd')
       const dayData = dataMap[dateStr] || {}
-      const statuses = Object.values(dayData)
-      if (statuses.length === 0) return { date: format(day, 'M/d'), score: null, dateStr }
+      const statuses = Object.values(dayData).filter(Boolean)
+      const isToday = dateStr === format(new Date(), 'yyyy-MM-dd')
+      if (statuses.length === 0) return { date: format(day, 'M/d'), score: null, dateStr, isToday }
       const greenCount = statuses.filter(s => s === 'green').length
       const score = Math.round((greenCount / statuses.length) * 100)
-      return { date: format(day, 'M/d'), score, dateStr }
+      return { date: format(day, 'M/d'), score, dateStr, isToday }
     })
   }, [allDays, dataMap])
 

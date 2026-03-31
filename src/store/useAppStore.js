@@ -29,6 +29,7 @@ const useAppStore = create(
       // Settings
       reminderTime: null,
       celebrationsEnabled: true,
+      celebrationStyle: 'confetti', // 'confetti' | 'message' | 'both' | 'none'
       iconStyle: 'circles', // 'circles' | 'faces' | 'marks'
 
       // UI
@@ -404,6 +405,7 @@ const useAppStore = create(
       // --- SETTINGS ---
       setReminderTime: (time) => set({ reminderTime: time }),
       setCelebrationsEnabled: (enabled) => set({ celebrationsEnabled: enabled }),
+      setCelebrationStyle: (style) => set({ celebrationStyle: style }),
       setIconStyle: (style) => set({ iconStyle: style }),
       setActiveTab: (tab) => set({ activeTab: tab }),
     }),
@@ -412,6 +414,7 @@ const useAppStore = create(
       partialize: (state) => ({
         reminderTime: state.reminderTime,
         celebrationsEnabled: state.celebrationsEnabled,
+        celebrationStyle: state.celebrationStyle,
         iconStyle: state.iconStyle,
         activeTab: state.activeTab,
         // onboardingComplete intentionally NOT persisted — always read from DB
