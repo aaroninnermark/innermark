@@ -275,6 +275,7 @@ function PageHeader({ today, onSettings }) {
       <button
         onClick={onSettings}
         className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-warm-100 text-warm-500 transition-colors"
+        title="Settings"
       >
         ⚙️
       </button>

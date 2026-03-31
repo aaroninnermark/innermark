@@ -9,11 +9,22 @@ import MainApp from './pages/MainApp'
 import LoadingScreen from './components/ui/LoadingScreen'
 
 export default function App() {
-  const { user, isLoading, onboardingComplete, initAuth } = useAppStore()
+  const { user, isLoading, onboardingComplete, initAuth, loadHistory } = useAppStore()
 
   useEffect(() => {
     initAuth()
   }, [])
+
+  // When tab becomes visible again, refresh data so pages don't show blank
+  useEffect(() => {
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'visible' && user) {
+        loadHistory()
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [user])
 
   if (isLoading) {
     return <LoadingScreen />

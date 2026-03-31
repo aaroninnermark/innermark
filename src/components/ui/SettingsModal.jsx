@@ -236,15 +236,26 @@ export default function SettingsModal({ onClose, onSignOut, isPremium, onUpgrade
                 </div>
               </div>
 
-              <button
-                onClick={() => {
-                  onClose()
-                  setTimeout(onSignOut, 200)
-                }}
-                className="w-full py-3 rounded-2xl border border-warm-200 text-warm-500 text-sm hover:bg-warm-100 transition-all"
-              >
-                Sign Out
-              </button>
+              <div className="space-y-2">
+                <button
+                  onClick={() => {
+                    onClose()
+                    setTimeout(onSignOut, 200)
+                  }}
+                  className="w-full py-3 rounded-2xl border border-warm-200 text-warm-500 text-sm hover:bg-warm-100 transition-all"
+                >
+                  Sign Out
+                </button>
+                <button
+                  onClick={() => {
+                    onClose()
+                    setTimeout(onSignOut, 200)
+                  }}
+                  className="w-full py-3 rounded-2xl bg-sage-50 border border-sage-200 text-sage-700 text-sm hover:bg-sage-100 transition-all font-medium"
+                >
+                  🔄 Switch User
+                </button>
+              </div>
             </>
           )}
         </div>
