@@ -1,6 +1,8 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { format, subDays, parseISO } from 'date-fns'
 import useAppStore from '../store/useAppStore'
+import { supabase, isSupabaseConfigured } from '../lib/supabase'
+import toast from 'react-hot-toast'
 
 const MONTHLY_PROMPTS = [
   "What do I most want to move toward this month?",
@@ -10,38 +12,99 @@ const MONTHLY_PROMPTS = [
 ]
 
 export default function IntentionsPage() {
-  const { topics, history } = useAppStore()
+  const { topics, history, user } = useAppStore()
   const [topicIntentions, setTopicIntentions] = useState({}) // topicId -> string
   const [monthlyIntention, setMonthlyIntention] = useState('')
-  const [monthlyReflection, setMonthlyReflection] = useState('')
   const [editingTopic, setEditingTopic] = useState(null)
   const [showReflection, setShowReflection] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   const currentMonth = format(new Date(), 'MMMM yyyy')
+  const monthKey = format(new Date(), 'yyyy-MM')
 
-  // Find topics with repeated reds in the last 14 days
+  // Load intentions from Supabase on mount
+  useEffect(() => {
+    if (!isSupabaseConfigured || !user) {
+      setLoading(false)
+      return
+    }
+    async function loadIntentions() {
+      const { data, error } = await supabase
+        .from('intentions')
+        .select('*')
+        .eq('user_id', user.id)
+
+      if (!error && data) {
+        const topicMap = {}
+        let monthly = ''
+        data.forEach(item => {
+          if (item.type === 'topic' && item.topic_id) {
+            topicMap[item.topic_id] = item.text
+          } else if (item.type === 'monthly' && item.month === monthKey) {
+            monthly = item.text
+          }
+        })
+        setTopicIntentions(topicMap)
+        setMonthlyIntention(monthly)
+      }
+      setLoading(false)
+    }
+    loadIntentions()
+  }, [user, monthKey])
+
+  // Find topics with repeated reds in last 14 days
   const redAlerts = useMemo(() => {
     const alerts = []
     const cutoff = format(subDays(new Date(), 14), 'yyyy-MM-dd')
     const recentHistory = history.filter(h => h.date >= cutoff)
-
     topics.forEach(topic => {
       const redCount = recentHistory.filter(h =>
         h.topic_entries?.find(e => e.topic_id === topic.id && e.status === 'red')
       ).length
-      if (redCount >= 3) {
-        alerts.push({ topic, redCount })
-      }
+      if (redCount >= 3) alerts.push({ topic, redCount })
     })
     return alerts
   }, [history, topics])
 
-  function saveIntention(topicId, value) {
+  async function saveTopicIntention(topicId, value) {
     setTopicIntentions(prev => ({ ...prev, [topicId]: value }))
     setEditingTopic(null)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
+
+    if (!isSupabaseConfigured || !user) return
+    await supabase.from('intentions').upsert({
+      user_id: user.id,
+      topic_id: topicId,
+      type: 'topic',
+      text: value,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id,topic_id,type' })
+  }
+
+  async function saveMonthlyIntention() {
+    if (!monthlyIntention.trim()) return
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+
+    if (!isSupabaseConfigured || !user) return
+    await supabase.from('intentions').upsert({
+      user_id: user.id,
+      topic_id: null,
+      month: monthKey,
+      type: 'monthly',
+      text: monthlyIntention,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id,month,type' })
+  }
+
+  if (loading) {
+    return (
+      <div className="page-container flex items-center justify-center min-h-[60vh]">
+        <p className="text-warm-400 text-sm">Loading intentions...</p>
+      </div>
+    )
   }
 
   return (
@@ -49,7 +112,7 @@ export default function IntentionsPage() {
       <h1 className="text-xl font-semibold text-sage-800 mb-1">Intentions</h1>
       <p className="text-sm text-warm-400 mb-5">Direction without judgment</p>
 
-      {/* Red alerts — pattern-informed nudges */}
+      {/* Red alerts */}
       {redAlerts.length > 0 && (
         <div className="mb-5 space-y-2">
           {redAlerts.map(({ topic, redCount }) => (
@@ -64,10 +127,7 @@ export default function IntentionsPage() {
                   : " What's one small thing that might help?"}
               </p>
               {!topicIntentions[topic.id] && (
-                <button
-                  onClick={() => setEditingTopic(topic.id)}
-                  className="text-xs text-red-600 underline"
-                >
+                <button onClick={() => setEditingTopic(topic.id)} className="text-xs text-red-600 underline">
                   Set an intention for {topic.name} →
                 </button>
               )}
@@ -78,11 +138,9 @@ export default function IntentionsPage() {
 
       {/* Monthly intention */}
       <div className="card mb-5">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <p className="text-sm font-semibold text-warm-700">🧭 {currentMonth}</p>
-            <p className="text-xs text-warm-400">Your direction this month</p>
-          </div>
+        <div className="mb-3">
+          <p className="text-sm font-semibold text-warm-700">🧭 {currentMonth}</p>
+          <p className="text-xs text-warm-400">Your direction this month</p>
         </div>
         <p className="text-xs text-warm-400 italic mb-2">
           "{MONTHLY_PROMPTS[new Date().getMonth() % MONTHLY_PROMPTS.length]}"
@@ -96,7 +154,12 @@ export default function IntentionsPage() {
           maxLength={200}
         />
         {monthlyIntention && (
-          <p className="text-right text-xs text-warm-300 mt-1">{monthlyIntention.length}/200</p>
+          <div className="flex items-center justify-between mt-2">
+            <p className="text-xs text-warm-300">{monthlyIntention.length}/200</p>
+            <button onClick={saveMonthlyIntention} className="text-xs text-sage-600 font-medium hover:text-sage-800">
+              Save →
+            </button>
+          </div>
         )}
       </div>
 
@@ -111,32 +174,23 @@ export default function IntentionsPage() {
             <div key={topic.id} className="card">
               {editingTopic === topic.id ? (
                 <div>
-                  <p className="text-sm font-medium text-warm-700 mb-2">
-                    {topic.emoji} {topic.name}
-                  </p>
+                  <p className="text-sm font-medium text-warm-700 mb-2">{topic.emoji} {topic.name}</p>
                   <IntentionEditor
                     topic={topic}
                     initial={topicIntentions[topic.id] || ''}
-                    onSave={(val) => saveIntention(topic.id, val)}
+                    onSave={(val) => saveTopicIntention(topic.id, val)}
                     onCancel={() => setEditingTopic(null)}
                   />
                 </div>
               ) : (
-                <button
-                  className="w-full flex items-start gap-3 text-left"
-                  onClick={() => setEditingTopic(topic.id)}
-                >
+                <button className="w-full flex items-start gap-3 text-left" onClick={() => setEditingTopic(topic.id)}>
                   <span className="text-xl mt-0.5">{topic.emoji}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-warm-700">{topic.name}</p>
                     {topicIntentions[topic.id] ? (
-                      <p className="text-xs text-warm-500 mt-0.5 italic">
-                        "{topicIntentions[topic.id]}"
-                      </p>
+                      <p className="text-xs text-warm-500 mt-0.5 italic">"{topicIntentions[topic.id]}"</p>
                     ) : (
-                      <p className="text-xs text-warm-300 mt-0.5">
-                        Tap to set an intention...
-                      </p>
+                      <p className="text-xs text-warm-300 mt-0.5">Tap to set an intention...</p>
                     )}
                   </div>
                   <span className="text-warm-300 text-sm mt-0.5">✏️</span>
@@ -147,12 +201,9 @@ export default function IntentionsPage() {
         </div>
       </div>
 
-      {/* 30-day reflection */}
+      {/* Monthly reflection */}
       <div className="card mb-5">
-        <button
-          className="w-full flex items-center justify-between"
-          onClick={() => setShowReflection(!showReflection)}
-        >
+        <button className="w-full flex items-center justify-between" onClick={() => setShowReflection(!showReflection)}>
           <div>
             <p className="text-sm font-semibold text-warm-700">📖 Monthly Reflection</p>
             <p className="text-xs text-warm-400">Look back, then look forward</p>
@@ -177,26 +228,24 @@ export default function IntentionsPage() {
                 />
               </div>
             ))}
-            <button className="btn-primary w-full text-sm">
-              Save Reflection
-            </button>
+            <button className="btn-primary w-full text-sm">Save Reflection</button>
           </div>
         )}
       </div>
 
-      {/* Guidance section */}
+      {/* Guidance */}
       <div className="card bg-sage-50 border-sage-100">
         <p className="text-sm font-semibold text-sage-700 mb-2">💡 On intention setting</p>
         <div className="space-y-2 text-xs text-sage-600 leading-relaxed">
           <p>An intention is not a goal. A goal is something you achieve or fail. An intention is a direction — something you move toward, even imperfectly.</p>
           <p>The question to ask isn't "did I hit my target?" but "did I move in the direction I care about?"</p>
-          <p>Start small. One honest sentence per area is enough. You can always deepen it over time.</p>
+          <p>Start small. One honest sentence per area is enough.</p>
         </div>
       </div>
 
       {saved && (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-sage-700 text-white text-xs px-4 py-2 rounded-full shadow-lg animate-fade-in">
-          ✓ Intention saved
+          ✓ Saved
         </div>
       )}
     </div>
@@ -205,7 +254,6 @@ export default function IntentionsPage() {
 
 function IntentionEditor({ topic, initial, onSave, onCancel }) {
   const [value, setValue] = useState(initial)
-
   return (
     <div>
       <input
