@@ -62,7 +62,7 @@ export default function IntentionsPage() {
       const redCount = recentHistory.filter(h =>
         h.topic_entries?.find(e => e.topic_id === topic.id && e.status === 'red')
       ).length
-      if (redCount >= 3) alerts.push({ topic, redCount })
+      if (redCount >= 7) alerts.push({ topic, redCount })
     })
     return alerts
   }, [history, topics])

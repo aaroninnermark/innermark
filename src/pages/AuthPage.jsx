@@ -11,7 +11,7 @@ export default function AuthPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [marketingConsent, setMarketingConsent] = useState(false)
+  const [marketingConsent, setMarketingConsent] = useState(true)
   const [loading, setLoading] = useState(false)
   const { signIn, signUp } = useAppStore()
   const navigate = useNavigate()
@@ -24,7 +24,7 @@ export default function AuthPage() {
       setLoading(true)
       try {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/reset-password`,
+          redirectTo: `https://getinnermark.com/reset-password`,
         })
         if (error) throw error
         toast.success('Password reset link sent! Check your email.')
