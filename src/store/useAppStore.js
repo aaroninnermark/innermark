@@ -404,6 +404,50 @@ const useAppStore = create(
       },
 
       // --- JOURNAL ---
+      updateJournalEntry: async (note, newText) => {
+        const { user } = get()
+        if (!isSupabaseConfigured || !user) return
+
+        if (note.type === 'day') {
+          // Update day_note on the checkin
+          const { data: checkin } = await supabase
+            .from('checkins')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('date', note.date)
+            .single()
+          if (checkin) {
+            await supabase.from('checkins').update({ day_note: newText }).eq('id', checkin.id)
+          }
+        } else {
+          // Update topic entry note
+          await supabase.from('topic_entries').update({ note: newText }).eq('id', note.rawId)
+        }
+        await get().loadHistory()
+      },
+
+      deleteJournalEntry: async (note) => {
+        const { user } = get()
+        if (!isSupabaseConfigured || !user) return
+
+        if (note.type === 'day') {
+          // Clear day_note (set to null)
+          const { data: checkin } = await supabase
+            .from('checkins')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('date', note.date)
+            .single()
+          if (checkin) {
+            await supabase.from('checkins').update({ day_note: null }).eq('id', checkin.id)
+          }
+        } else {
+          // Clear topic note
+          await supabase.from('topic_entries').update({ note: null }).eq('id', note.rawId)
+        }
+        await get().loadHistory()
+      },
+
       saveJournalEntry: async (text, topicId = null) => {
         const { user, history } = get()
         const today = format(new Date(), 'yyyy-MM-dd')

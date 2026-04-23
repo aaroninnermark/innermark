@@ -11,7 +11,7 @@ const DATE_FILTERS = [
 ]
 
 export default function JournalPage() {
-  const { history, topics, saveJournalEntry } = useAppStore()
+  const { history, topics, saveJournalEntry, updateJournalEntry, deleteJournalEntry } = useAppStore()
   const [search, setSearch] = useState('')
   const [filterTopic, setFilterTopic] = useState('all')
   const [filterDate, setFilterDate] = useState('all')
@@ -20,6 +20,8 @@ export default function JournalPage() {
   const [newEntryTopic, setNewEntryTopic] = useState('day')
   const [entrySaved, setEntrySaved] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [editingNote, setEditingNote] = useState(null) // note object being edited
+  const [editText, setEditText] = useState('')
 
   async function handleSaveEntry() {
     if (!newEntryText.trim()) return
@@ -59,6 +61,7 @@ export default function JournalPage() {
           const topic = topics.find(t => t.id === te.topic_id)
           notes.push({
             id: `topic-${te.id || `${entry.id}-${te.topic_id}`}`,
+            rawId: te.id, // needed for update/delete
             date: entry.date,
             type: 'topic',
             text: te.note,
@@ -228,18 +231,88 @@ export default function JournalPage() {
             <div className="space-y-2">
               {notes.map(note => (
                 <div key={note.id} className="card">
-                  <div className="flex items-start gap-3">
-                    <span className="text-lg mt-0.5">{note.topicEmoji}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                  {editingNote?.id === note.id ? (
+                    // Edit mode
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg">{note.topicEmoji}</span>
                         <span className="text-xs font-medium text-warm-500">
                           {note.type === 'day' ? 'Day note' : note.topicName}
                         </span>
-                        {note.status && <span className="text-sm">{STATUS_EMOJI[note.status]}</span>}
                       </div>
-                      <p className="text-sm text-warm-800 leading-relaxed">{note.text}</p>
+                      <textarea
+                        value={editText}
+                        onChange={e => setEditText(e.target.value)}
+                        rows={3}
+                        className="w-full bg-warm-50 rounded-xl p-3 text-sm text-warm-800 focus:outline-none resize-none border border-warm-200 focus:border-sage-300 transition-colors mb-2"
+                        maxLength={500}
+                        autoFocus
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setEditingNote(null)}
+                          className="btn-ghost text-xs flex-1"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (!editText.trim()) return
+                            try {
+                              await updateJournalEntry(note, editText.trim())
+                              setEditingNote(null)
+                              toast.success('Entry updated')
+                            } catch {
+                              toast.error('Failed to update entry')
+                            }
+                          }}
+                          disabled={!editText.trim()}
+                          className="btn-primary text-xs flex-1 disabled:opacity-40"
+                        >
+                          Save Changes
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    // View mode
+                    <div className="flex items-start gap-3">
+                      <span className="text-lg mt-0.5">{note.topicEmoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-medium text-warm-500">
+                            {note.type === 'day' ? 'Day note' : note.topicName}
+                          </span>
+                          {note.status && <span className="text-sm">{STATUS_EMOJI[note.status]}</span>}
+                        </div>
+                        <p className="text-sm text-warm-800 leading-relaxed">{note.text}</p>
+                      </div>
+                      {/* Edit / Delete buttons */}
+                      <div className="flex gap-1 flex-shrink-0 ml-1">
+                        <button
+                          onClick={() => { setEditingNote(note); setEditText(note.text) }}
+                          className="text-warm-300 hover:text-sage-500 p-1 rounded-lg hover:bg-sage-50 transition-all"
+                          title="Edit"
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (!window.confirm('Delete this entry?')) return
+                            try {
+                              await deleteJournalEntry(note)
+                              toast.success('Entry deleted')
+                            } catch {
+                              toast.error('Failed to delete entry')
+                            }
+                          }}
+                          className="text-warm-300 hover:text-red-400 p-1 rounded-lg hover:bg-red-50 transition-all"
+                          title="Delete"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
