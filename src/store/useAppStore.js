@@ -159,16 +159,17 @@ const useAppStore = create(
             .single()
 
           const isPremium = profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing'
-          // If DB says complete but they have no topics, send them back to onboarding
-          const onboardingComplete = (profile?.onboarding_complete && (topics?.length > 0)) || false
 
-          // Load topics
+          // Load topics first so we can correctly determine onboarding state
           const { data: topics } = await supabase
             .from('topics')
             .select('*')
             .eq('user_id', user.id)
             .eq('archived', false)
             .order('position', { ascending: true })
+
+          // Only send to onboarding if DB says incomplete OR they have no topics yet
+          const onboardingComplete = (profile?.onboarding_complete === true && (topics?.length > 0)) || false
 
           // Load today's check-in
           const today = format(new Date(), 'yyyy-MM-dd')

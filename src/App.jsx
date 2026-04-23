@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import useAppStore from './store/useAppStore'
 
 // Pages
@@ -15,7 +15,7 @@ export default function App() {
     initAuth()
   }, [])
 
-  // When tab becomes visible again, refresh data so pages don't show blank
+  // When tab becomes visible again, refresh data silently — don't navigate
   useEffect(() => {
     function handleVisibilityChange() {
       if (document.visibilityState === 'visible' && user) {

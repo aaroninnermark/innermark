@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import useAppStore from '../store/useAppStore'
 import CheckInPage from './CheckInPage'
@@ -19,6 +20,19 @@ export default function MainApp() {
   const location = useLocation()
 
   const activeTab = TABS.find(t => t.path === location.pathname)?.id || 'checkin'
+
+  // Restore last visited tab on mount
+  useEffect(() => {
+    const savedPath = sessionStorage.getItem('innermark_last_path')
+    if (savedPath && savedPath !== '/' && location.pathname === '/') {
+      navigate(savedPath, { replace: true })
+    }
+  }, [])
+
+  // Save current tab to sessionStorage whenever it changes
+  useEffect(() => {
+    sessionStorage.setItem('innermark_last_path', location.pathname)
+  }, [location.pathname])
 
   function handleTabPress(tab) {
     navigate(tab.path)
