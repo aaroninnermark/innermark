@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { format, subDays, eachDayOfInterval, parseISO } from 'date-fns'
+import { format, subDays, eachDayOfInterval, parseISO, startOfWeek, addDays, getDay } from 'date-fns'
 import useAppStore from '../store/useAppStore'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import PremiumPrompt from '../components/ui/PremiumPrompt'
@@ -19,6 +19,8 @@ const STATUS_COLOR = {
   null: '#e8e0d2',
 }
 
+const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
 export default function TrendsPage() {
   const { topics, history, isPremium, historyLoaded } = useAppStore()
   const [selectedRange, setSelectedRange] = useState('7')
@@ -27,7 +29,6 @@ export default function TrendsPage() {
 
   const range = RANGES.find(r => r.id === selectedRange)
 
-  // Date range — endDate is today (inclusive), startDate goes back N-1 days
   const today = new Date()
   const endDate = today
   const startDate = range.days
@@ -36,10 +37,8 @@ export default function TrendsPage() {
       ? parseISO(history[history.length - 1].date)
       : subDays(endDate, 29)
 
-  // All days in range, oldest → newest, always includes today
   const allDays = eachDayOfInterval({ start: startDate, end: endDate })
 
-  // Build lookup: date -> { topicId -> status }
   const dataMap = useMemo(() => {
     const map = {}
     history.forEach(entry => {
@@ -51,7 +50,6 @@ export default function TrendsPage() {
     return map
   }, [history])
 
-  // Per-topic totals across selected range
   const topicTotals = useMemo(() => {
     const totals = {}
     topics.forEach(t => {
@@ -71,14 +69,13 @@ export default function TrendsPage() {
     return totals
   }, [allDays, dataMap, topics])
 
-  // Streak calculation — start from today and go back
   const streaks = useMemo(() => {
     let currentStreak = 0
     for (let i = 0; i < 365; i++) {
       const date = format(subDays(new Date(), i), 'yyyy-MM-dd')
       const dayData = dataMap[date]
       if (!dayData || Object.keys(dayData).length === 0) {
-        if (i === 0) continue // today not checked in yet, keep going back
+        if (i === 0) continue
         break
       }
       const statuses = Object.values(dayData)
@@ -91,7 +88,6 @@ export default function TrendsPage() {
     return currentStreak
   }, [dataMap])
 
-  // Bar chart data — use all days in range, only show days with data
   const chartData = useMemo(() => {
     return allDays.map(day => {
       const dateStr = format(day, 'yyyy-MM-dd')
@@ -120,6 +116,9 @@ export default function TrendsPage() {
       </div>
     )
   }
+
+  // Use calendar layout for 30 and 90 day views
+  const useCalendarLayout = selectedRange === '30' || selectedRange === '90'
 
   return (
     <div className="page-container animate-fade-in">
@@ -176,7 +175,22 @@ export default function TrendsPage() {
       </div>
 
       {viewMode === 'grid' ? (
-        <GridView topics={topics} allDays={allDays} dataMap={dataMap} topicTotals={topicTotals} />
+        useCalendarLayout ? (
+          <CalendarGridView
+            topics={topics}
+            allDays={allDays}
+            dataMap={dataMap}
+            topicTotals={topicTotals}
+            startDate={startDate}
+          />
+        ) : (
+          <LinearGridView
+            topics={topics}
+            allDays={allDays}
+            dataMap={dataMap}
+            topicTotals={topicTotals}
+          />
+        )
       ) : (
         <ChartView chartData={chartData} />
       )}
@@ -202,32 +216,133 @@ function StatCard({ value, label, icon, highlight }) {
   )
 }
 
-function GridView({ topics, allDays, dataMap, topicTotals }) {
-  // For the scrollable grid, show most recent days (up to 14 columns for readability)
-  // Full totals are shown in the ratio column regardless of visible window
+// Calendar grid: 7 columns (Sun-Sat), rows = weeks, one section per topic
+function CalendarGridView({ topics, allDays, dataMap, topicTotals, startDate }) {
+  const todayStr = format(new Date(), 'yyyy-MM-dd')
+
+  // Build calendar grid — pad start to Sunday
+  const calendarStart = startOfWeek(allDays[0], { weekStartsOn: 0 })
+  const calendarEnd = allDays[allDays.length - 1]
+
+  // All days including leading blanks
+  const calendarDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd })
+
+  // Split into weeks of 7
+  const weeks = []
+  for (let i = 0; i < calendarDays.length; i += 7) {
+    weeks.push(calendarDays.slice(i, i + 7))
+  }
+
+  const rangeStart = format(allDays[0], 'yyyy-MM-dd')
+
+  return (
+    <div className="space-y-5">
+      {topics.map(topic => {
+        const totals = topicTotals[topic.id] || { green: 0, yellow: 0, red: 0, total: 0 }
+
+        return (
+          <div key={topic.id} className="card p-0 overflow-hidden">
+            {/* Topic header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-warm-100">
+              <span className="text-sm font-semibold text-warm-800">
+                {topic.emoji} {topic.name}
+              </span>
+              {totals.total > 0 && (
+                <span className="text-xs text-warm-400">
+                  🟢{totals.green} 🟡{totals.yellow} 🔴{totals.red}
+                </span>
+              )}
+            </div>
+
+            {/* Day of week headers */}
+            <div className="grid grid-cols-7 px-3 pt-2 pb-1">
+              {DAY_LABELS.map(d => (
+                <div key={d} className="text-center text-xs text-warm-300 font-medium">{d[0]}</div>
+              ))}
+            </div>
+
+            {/* Week rows */}
+            <div className="px-3 pb-3 space-y-1">
+              {weeks.map((week, wi) => (
+                <div key={wi} className="grid grid-cols-7 gap-1">
+                  {week.map((day, di) => {
+                    const dateStr = format(day, 'yyyy-MM-dd')
+                    const inRange = dateStr >= rangeStart && dateStr <= format(calendarEnd, 'yyyy-MM-dd')
+                    const status = inRange ? dataMap[dateStr]?.[topic.id] : null
+                    const isToday = dateStr === todayStr
+
+                    return (
+                      <div key={di} className="flex flex-col items-center">
+                        <div
+                          className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
+                            isToday ? 'ring-2 ring-sage-400 ring-offset-1' : ''
+                          }`}
+                          style={{
+                            backgroundColor: inRange ? STATUS_COLOR[status || null] : 'transparent',
+                          }}
+                          title={inRange ? (status || 'No data') : ''}
+                        />
+                        <span className={`text-xs mt-0.5 ${isToday ? 'text-sage-600 font-bold' : 'text-warm-300'}`}>
+                          {inRange ? format(day, 'd') : ''}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              ))}
+            </div>
+
+            {/* Ratio bar */}
+            {totals.total > 0 && (
+              <div className="px-4 pb-3">
+                <div className="flex h-1.5 rounded-full overflow-hidden">
+                  {totals.green > 0 && <div style={{ width: `${Math.round((totals.green / totals.total) * 100)}%`, backgroundColor: STATUS_COLOR.green }} />}
+                  {totals.yellow > 0 && <div style={{ width: `${Math.round((totals.yellow / totals.total) * 100)}%`, backgroundColor: STATUS_COLOR.yellow }} />}
+                  {totals.red > 0 && <div style={{ width: `${Math.round((totals.red / totals.total) * 100)}%`, backgroundColor: STATUS_COLOR.red }} />}
+                </div>
+              </div>
+            )}
+          </div>
+        )
+      })}
+
+      {/* Legend */}
+      <div className="flex gap-4 justify-center">
+        {[['green', 'Good'], ['yellow', 'Neutral'], ['red', 'Hard'], [null, 'No data']].map(([s, label]) => (
+          <div key={label} className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: STATUS_COLOR[s] }} />
+            <span className="text-xs text-warm-400">{label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// Linear grid: original horizontal scroll view for 7 days
+function LinearGridView({ topics, allDays, dataMap, topicTotals }) {
   const maxCols = 14
   const gridDays = allDays.slice(-maxCols)
+  const todayStr = format(new Date(), 'yyyy-MM-dd')
 
   return (
     <div className="space-y-3">
-      {/* Scrollable day grid */}
       <div className="card overflow-hidden p-0">
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-warm-100">
-                <th className="text-left p-3 text-warm-400 font-medium sticky left-0 bg-white z-10 min-w-[100px]">
-                  Topic
-                </th>
-                {gridDays.map(day => (
-                  <th key={day.toISOString()} className="p-1.5 text-warm-400 font-medium text-center min-w-[2rem]">
-                    <div>{format(day, 'EEE')[0]}</div>
-                    <div>{format(day, 'd')}</div>
-                  </th>
-                ))}
-                <th className="p-2 text-warm-400 font-medium text-center min-w-[80px] sticky right-0 bg-white z-10">
-                  Totals
-                </th>
+                <th className="text-left p-3 text-warm-400 font-medium sticky left-0 bg-white z-10 min-w-[100px]">Topic</th>
+                {gridDays.map(day => {
+                  const isToday = format(day, 'yyyy-MM-dd') === todayStr
+                  return (
+                    <th key={day.toISOString()} className={`p-1.5 text-center min-w-[2rem] ${isToday ? 'text-sage-600' : 'text-warm-400'} font-medium`}>
+                      <div>{format(day, 'EEE')[0]}</div>
+                      <div className={isToday ? 'font-bold' : ''}>{format(day, 'd')}</div>
+                    </th>
+                  )
+                })}
+                <th className="p-2 text-warm-400 font-medium text-center min-w-[80px] sticky right-0 bg-white z-10">Totals</th>
               </tr>
             </thead>
             <tbody>
@@ -242,17 +357,17 @@ function GridView({ topics, allDays, dataMap, topicTotals }) {
                     {gridDays.map(day => {
                       const dateStr = format(day, 'yyyy-MM-dd')
                       const status = dataMap[dateStr]?.[topic.id]
+                      const isToday = dateStr === todayStr
                       return (
                         <td key={day.toISOString()} className="p-1.5 text-center">
                           <div
-                            className="w-6 h-6 rounded-full mx-auto transition-all"
+                            className={`w-6 h-6 rounded-full mx-auto transition-all ${isToday ? 'ring-2 ring-sage-400 ring-offset-1' : ''}`}
                             style={{ backgroundColor: STATUS_COLOR[status || null] }}
                             title={status || 'No data'}
                           />
                         </td>
                       )
                     })}
-                    {/* Totals column */}
                     <td className="p-2 sticky right-0 bg-white z-10">
                       <div className="flex flex-col gap-0.5 items-center text-xs">
                         {totals.total > 0 ? (
@@ -273,8 +388,6 @@ function GridView({ topics, allDays, dataMap, topicTotals }) {
             </tbody>
           </table>
         </div>
-
-        {/* Legend */}
         <div className="flex gap-4 p-3 border-t border-warm-100 justify-center">
           {[['green', 'Good'], ['yellow', 'Neutral'], ['red', 'Hard'], [null, 'No data']].map(([s, label]) => (
             <div key={label} className="flex items-center gap-1.5">
@@ -299,12 +412,8 @@ function GridView({ topics, allDays, dataMap, topicTotals }) {
               return (
                 <div key={topic.id}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-warm-700">
-                      {topic.emoji} {topic.name}
-                    </span>
-                    <span className="text-xs text-warm-400">
-                      🟢{t.green} 🟡{t.yellow} 🔴{t.red}
-                    </span>
+                    <span className="text-xs text-warm-700">{topic.emoji} {topic.name}</span>
+                    <span className="text-xs text-warm-400">🟢{t.green} 🟡{t.yellow} 🔴{t.red}</span>
                   </div>
                   <div className="flex h-2 rounded-full overflow-hidden">
                     {gPct > 0 && <div style={{ width: `${gPct}%`, backgroundColor: STATUS_COLOR.green }} />}
@@ -327,39 +436,15 @@ function ChartView({ chartData }) {
       <h3 className="text-sm font-semibold text-warm-600 mb-4">Overall wellbeing score</h3>
       <ResponsiveContainer width="100%" height={200}>
         <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-          <XAxis
-            dataKey="date"
-            tick={{ fontSize: 10, fill: '#bfaa8e' }}
-            tickLine={false}
-            axisLine={false}
-            interval={Math.max(0, Math.floor(chartData.length / 8) - 1)}
-          />
-          <YAxis
-            domain={[0, 100]}
-            tick={{ fontSize: 10, fill: '#bfaa8e' }}
-            tickLine={false}
-            axisLine={false}
-          />
+          <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#bfaa8e' }} tickLine={false} axisLine={false} interval={Math.max(0, Math.floor(chartData.length / 8) - 1)} />
+          <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: '#bfaa8e' }} tickLine={false} axisLine={false} />
           <Tooltip
-            contentStyle={{
-              background: '#faf9f6',
-              border: '1px solid #e8e0d2',
-              borderRadius: '12px',
-              fontSize: '12px',
-            }}
+            contentStyle={{ background: '#faf9f6', border: '1px solid #e8e0d2', borderRadius: '12px', fontSize: '12px' }}
             formatter={(v) => v !== null ? [`${v}%`, 'Score'] : ['No data', '']}
           />
           <Bar dataKey="score" radius={[4, 4, 0, 0]}>
             {chartData.map((entry, i) => (
-              <Cell
-                key={i}
-                fill={
-                  entry.score === null ? '#e8e0d2'
-                  : entry.score >= 70 ? '#4e8f50'
-                  : entry.score >= 40 ? '#f59e0b'
-                  : '#ef4444'
-                }
-              />
+              <Cell key={i} fill={entry.score === null ? '#e8e0d2' : entry.score >= 70 ? '#4e8f50' : entry.score >= 40 ? '#f59e0b' : '#ef4444'} />
             ))}
           </Bar>
         </BarChart>
