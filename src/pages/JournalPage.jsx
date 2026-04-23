@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { format, parseISO, subDays } from 'date-fns'
 import useAppStore from '../store/useAppStore'
+import toast from 'react-hot-toast'
 
 const DATE_FILTERS = [
   { id: 'all', label: 'All time' },
@@ -10,7 +11,7 @@ const DATE_FILTERS = [
 ]
 
 export default function JournalPage() {
-  const { history, topics, dayNote, setDayNote } = useAppStore()
+  const { history, topics, saveJournalEntry } = useAppStore()
   const [search, setSearch] = useState('')
   const [filterTopic, setFilterTopic] = useState('all')
   const [filterDate, setFilterDate] = useState('all')
@@ -18,15 +19,24 @@ export default function JournalPage() {
   const [newEntryText, setNewEntryText] = useState('')
   const [newEntryTopic, setNewEntryTopic] = useState('day')
   const [entrySaved, setEntrySaved] = useState(false)
+  const [saving, setSaving] = useState(false)
 
-  function handleSaveEntry() {
+  async function handleSaveEntry() {
     if (!newEntryText.trim()) return
-    // Save as day note via the store's existing mechanism
-    setDayNote(newEntryText.trim())
-    setNewEntryText('')
-    setShowNewEntry(false)
-    setEntrySaved(true)
-    setTimeout(() => setEntrySaved(false), 2500)
+    setSaving(true)
+    try {
+      const topicId = newEntryTopic === 'day' ? null : newEntryTopic
+      await saveJournalEntry(newEntryText.trim(), topicId)
+      setNewEntryText('')
+      setNewEntryTopic('day')
+      setShowNewEntry(false)
+      setEntrySaved(true)
+      setTimeout(() => setEntrySaved(false), 2500)
+    } catch (err) {
+      toast.error('Failed to save entry. Please try again.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   // Build flattened note list from history
@@ -151,10 +161,10 @@ export default function JournalPage() {
             </button>
             <button
               onClick={handleSaveEntry}
-              disabled={!newEntryText.trim()}
+              disabled={!newEntryText.trim() || saving}
               className="btn-primary flex-1 text-sm disabled:opacity-40"
             >
-              Save Entry
+              {saving ? 'Saving...' : 'Save Entry'}
             </button>
           </div>
         </div>

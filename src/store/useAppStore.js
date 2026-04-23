@@ -403,6 +403,64 @@ const useAppStore = create(
         }
       },
 
+      // --- JOURNAL ---
+      saveJournalEntry: async (text, topicId = null) => {
+        const { user, history } = get()
+        const today = format(new Date(), 'yyyy-MM-dd')
+
+        if (isSupabaseConfigured && user) {
+          // Upsert today's checkin (create if doesn't exist)
+          const { data: checkin, error: checkinError } = await supabase
+            .from('checkins')
+            .upsert({ user_id: user.id, date: today }, { onConflict: 'user_id,date' })
+            .select()
+            .single()
+
+          if (checkinError) throw checkinError
+
+          if (topicId) {
+            // Save as topic note
+            await supabase.from('topic_entries').upsert({
+              checkin_id: checkin.id,
+              topic_id: topicId,
+              status: 'yellow', // neutral default if no status set
+              note: text,
+            }, { onConflict: 'checkin_id,topic_id' })
+          } else {
+            // Save as day note
+            await supabase.from('checkins')
+              .update({ day_note: text })
+              .eq('id', checkin.id)
+          }
+
+          // Reload history to reflect new entry
+          await get().loadHistory()
+        } else {
+          // Mock mode — add to local history
+          const existingEntry = history.find(h => h.date === today)
+          if (existingEntry) {
+            const updated = history.map(h => {
+              if (h.date !== today) return h
+              if (topicId) {
+                return { ...h, topic_entries: [...(h.topic_entries || []).filter(te => te.topic_id !== topicId), { topic_id: topicId, note: text, status: 'yellow' }] }
+              }
+              return { ...h, day_note: text }
+            })
+            set({ history: updated })
+          } else {
+            const newEntry = {
+              id: `journal-${Date.now()}`,
+              user_id: user?.id || 'mock',
+              date: today,
+              day_note: topicId ? null : text,
+              created_at: new Date().toISOString(),
+              topic_entries: topicId ? [{ topic_id: topicId, note: text, status: 'yellow' }] : [],
+            }
+            set({ history: [newEntry, ...history] })
+          }
+        }
+      },
+
       // --- SETTINGS ---
       setReminderTime: (time) => set({ reminderTime: time }),
       setCelebrationsEnabled: (enabled) => set({ celebrationsEnabled: enabled }),
