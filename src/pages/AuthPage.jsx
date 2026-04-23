@@ -7,6 +7,7 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase'
 export default function AuthPage() {
   const [mode, setMode] = useState('login') // 'login' | 'signup' | 'forgot'
   const [email, setEmail] = useState('')
+  const [firstName, setFirstName] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -52,7 +53,7 @@ export default function AuthPage() {
           toast.error('Passwords do not match')
           return
         }
-        await signUp(email, password, marketingConsent)
+        await signUp(email, password, marketingConsent, firstName.trim() || null)
         toast.success('Check your email to confirm your account!')
       }
     } catch (err) {
@@ -133,6 +134,19 @@ export default function AuthPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {mode === 'signup' && (
+                <div>
+                  <label className="block text-sm font-medium text-warm-700 mb-1.5">First Name</label>
+                  <input
+                    type="text"
+                    value={firstName}
+                    onChange={e => setFirstName(e.target.value)}
+                    placeholder="Your first name"
+                    className="input-field"
+                    autoComplete="given-name"
+                  />
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-warm-700 mb-1.5">Email</label>
                 <input

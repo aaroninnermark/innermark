@@ -76,17 +76,22 @@ const useAppStore = create(
         })
       },
 
-      signUp: async (email, password, marketingConsent = false) => {
+      signUp: async (email, password, marketingConsent = false, fullName = null) => {
         if (!isSupabaseConfigured) throw new Error('Supabase not configured')
-        const { data, error } = await supabase.auth.signUp({ email, password })
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { full_name: fullName } }
+        })
         if (error) throw error
-        // Save marketing consent to profile
         if (data?.user) {
           await supabase.from('profiles').upsert({
             id: data.user.id,
             email,
+            full_name: fullName,
             marketing_consent: marketingConsent,
             marketing_consent_at: marketingConsent ? new Date().toISOString() : null,
+            reminders_enabled: true,
           })
         }
         return data
