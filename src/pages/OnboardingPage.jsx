@@ -93,9 +93,32 @@ export default function OnboardingPage() {
     }
     setLoading(true)
     try {
+      // Create topics and collect their IDs
+      const createdTopics = []
       for (const topic of selectedTopics) {
-        await addTopic(topic.name, topic.emoji)
+        const created = await addTopic(topic.name, topic.emoji)
+        createdTopics.push({ ...topic, id: created.id })
       }
+
+      // Save any intentions set during onboarding
+      const { user } = useAppStore.getState()
+      if (user) {
+        const { supabase, isSupabaseConfigured } = await import('../lib/supabase')
+        if (isSupabaseConfigured) {
+          for (const topic of createdTopics) {
+            const intentionText = intentions[topic.name]
+            if (intentionText?.trim()) {
+              await supabase.from('intentions').upsert({
+                user_id: user.id,
+                topic_id: topic.id,
+                type: 'topic',
+                text: intentionText.trim(),
+              }, { onConflict: 'user_id,topic_id,type' })
+            }
+          }
+        }
+      }
+
       saveReminderTime(reminderTime)
       await completeOnboarding()
       navigate('/')

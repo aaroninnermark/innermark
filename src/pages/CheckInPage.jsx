@@ -150,6 +150,24 @@ export default function CheckInPage() {
           )}
         </div>
 
+        {/* What's next bridge */}
+        <div className="grid grid-cols-3 gap-2 mb-3">
+          {[
+            { label: 'Trends', icon: '📊', path: '/trends' },
+            { label: 'Journal', icon: '📝', path: '/journal' },
+            { label: 'Intentions', icon: '🧭', path: '/intentions' },
+          ].map(item => (
+            <button
+              key={item.path}
+              onClick={() => window.dispatchEvent(new CustomEvent('navigate-to', { detail: item.path }))}
+              className="card text-center py-3 hover:border-sage-200 transition-all active:scale-95"
+            >
+              <div className="text-xl mb-1">{item.icon}</div>
+              <div className="text-xs text-warm-500 font-medium">{item.label}</div>
+            </button>
+          ))}
+        </div>
+
         <button
           onClick={() => resetTodayCheckin()}
           className="btn-ghost w-full text-sm text-warm-400"

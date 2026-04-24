@@ -220,7 +220,25 @@ export default function TrendsPage() {
 
       {topics.length === 0 && (
         <div className="card text-center py-8 text-warm-400">
-          <p className="text-sm">Add topics and start checking in to see trends!</p>
+          <p className="text-sm">Add topics in Settings to start tracking.</p>
+        </div>
+      )}
+
+      {topics.length > 0 && history.length === 0 && (
+        <div className="card text-center py-8">
+          <div className="text-3xl mb-3">🌱</div>
+          <p className="text-sm font-medium text-warm-700 mb-1">Your patterns will appear here</p>
+          <p className="text-xs text-warm-400 leading-relaxed">
+            Check in each day and this page will start showing you something real. Even a week of data tells a story.
+          </p>
+        </div>
+      )}
+
+      {topics.length > 0 && history.length > 0 && history.length < 3 && (
+        <div className="bg-sage-50 border border-sage-100 rounded-2xl p-4 mb-4">
+          <p className="text-xs text-sage-600">
+            🌿 {history.length === 1 ? 'First check-in logged.' : `${history.length} check-ins so far.`} Keep going — patterns emerge around day 7.
+          </p>
         </div>
       )}
 
