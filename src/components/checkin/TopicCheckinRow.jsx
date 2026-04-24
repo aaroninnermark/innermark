@@ -55,12 +55,27 @@ export default function TopicCheckinRow({ topic, entry }) {
       <div className="flex items-center gap-3">
         <span className="text-xl">{topic.emoji}</span>
         <div className="flex-1 min-w-0">
-          <span className="text-base font-medium text-warm-800 block">{topic.name}</span>
+          {/* Category as small label */}
+          <span className="text-xs font-semibold text-warm-400 uppercase tracking-wide block">
+            {topic.name}
+          </span>
           {intention ? (
-            <span className="text-xs text-warm-400 italic block truncate" title={intention}>
+            /* Intention as the primary text */
+            <span className="text-sm font-medium text-warm-800 block leading-snug">
               {intention}
             </span>
-          ) : null}
+          ) : (
+            /* Empty state prompt */
+            <button
+              onClick={e => {
+                e.stopPropagation()
+                window.dispatchEvent(new CustomEvent('navigate-to-intentions'))
+              }}
+              className="text-xs text-sage-500 italic hover:text-sage-700 transition-colors text-left"
+            >
+              ✏️ What does a good day here look like?
+            </button>
+          )}
         </div>
 
         <div className="flex gap-2">

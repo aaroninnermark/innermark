@@ -34,6 +34,15 @@ export default function MainApp() {
     sessionStorage.setItem('innermark_last_path', location.pathname)
   }, [location.pathname])
 
+  // Listen for intention prompt tap — navigate to Intentions tab
+  useEffect(() => {
+    function handleIntentionNav() {
+      navigate('/intentions')
+    }
+    window.addEventListener('navigate-to-intentions', handleIntentionNav)
+    return () => window.removeEventListener('navigate-to-intentions', handleIntentionNav)
+  }, [])
+
   function handleTabPress(tab) {
     navigate(tab.path)
   }
