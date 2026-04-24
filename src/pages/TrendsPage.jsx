@@ -19,6 +19,27 @@ const STATUS_COLOR = {
   null: '#e8e0d2',
 }
 
+// Bubble style: gradient + shadow gives depth
+function bubbleStyle(status) {
+  const gradients = {
+    green:  'radial-gradient(circle at 35% 35%, #7fc47f, #3a7a3c)',
+    yellow: 'radial-gradient(circle at 35% 35%, #fcd34d, #d97706)',
+    red:    'radial-gradient(circle at 35% 35%, #f87171, #dc2626)',
+    null:   'radial-gradient(circle at 35% 35%, #f0ebe3, #d4ccc0)',
+  }
+  const shadows = {
+    green:  '0 2px 4px rgba(78,143,80,0.4), inset 0 1px 1px rgba(255,255,255,0.3)',
+    yellow: '0 2px 4px rgba(217,119,6,0.4), inset 0 1px 1px rgba(255,255,255,0.3)',
+    red:    '0 2px 4px rgba(220,38,38,0.4), inset 0 1px 1px rgba(255,255,255,0.3)',
+    null:   '0 1px 2px rgba(0,0,0,0.08), inset 0 1px 1px rgba(255,255,255,0.4)',
+  }
+  const key = status || 'null'
+  return {
+    background: gradients[key],
+    boxShadow: shadows[key],
+  }
+}
+
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 export default function TrendsPage() {
@@ -286,9 +307,7 @@ function CalendarGridView({ topics, allDays, dataMap, topicTotals, startDate, to
                           className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
                             isToday ? 'ring-2 ring-sage-400 ring-offset-1' : ''
                           }`}
-                          style={{
-                            backgroundColor: inRange ? STATUS_COLOR[status || null] : 'transparent',
-                          }}
+                          style={inRange ? bubbleStyle(status) : { background: 'transparent' }}
                           title={inRange ? (status || 'No data') : ''}
                         />
                         <span className={`text-xs mt-0.5 ${isToday ? 'text-sage-600 font-bold' : 'text-warm-300'}`}>
@@ -319,7 +338,7 @@ function CalendarGridView({ topics, allDays, dataMap, topicTotals, startDate, to
       <div className="flex gap-4 justify-center">
         {[['green', 'Good'], ['yellow', 'Neutral'], ['red', 'Hard'], [null, 'No data']].map(([s, label]) => (
           <div key={label} className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: STATUS_COLOR[s] }} />
+            <div className="w-3 h-3 rounded-full" style={bubbleStyle(s)} />
             <span className="text-xs text-warm-400">{label}</span>
           </div>
         ))}
@@ -377,7 +396,7 @@ function LinearGridView({ topics, allDays, dataMap, topicTotals, topicIntentions
                         <td key={day.toISOString()} className="p-1.5 text-center">
                           <div
                             className={`w-6 h-6 rounded-full mx-auto transition-all ${isToday ? 'ring-2 ring-sage-400 ring-offset-1' : ''}`}
-                            style={{ backgroundColor: STATUS_COLOR[status || null] }}
+                            style={bubbleStyle(status)}
                             title={status || 'No data'}
                           />
                         </td>
@@ -406,7 +425,7 @@ function LinearGridView({ topics, allDays, dataMap, topicTotals, topicIntentions
         <div className="flex gap-4 p-3 border-t border-warm-100 justify-center">
           {[['green', 'Good'], ['yellow', 'Neutral'], ['red', 'Hard'], [null, 'No data']].map(([s, label]) => (
             <div key={label} className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: STATUS_COLOR[s] }} />
+              <div className="w-3 h-3 rounded-full" style={bubbleStyle(s)} />
               <span className="text-xs text-warm-400">{label}</span>
             </div>
           ))}
