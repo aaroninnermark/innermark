@@ -284,11 +284,12 @@ function PageHeader({ today, onSettings }) {
 }
 
 function StatusDot({ status }) {
-  const colors = {
-    red: 'bg-red-400',
-    yellow: 'bg-yellow-400',
-    green: 'bg-sage-500',
+  const { iconStyle } = useAppStore()
+  const ICONS = {
+    circles: { red: '🔴', yellow: '🟡', green: '🟢', null: '⚪' },
+    faces:   { red: '😢', yellow: '😐', green: '😊', null: '⚪' },
+    marks:   { red: '⭕', yellow: '✅', green: '⭐', null: '⚪' },
   }
-  const labels = { red: '🔴', yellow: '🟡', green: '🟢' }
-  return <span className="text-lg">{labels[status] || '⚪'}</span>
+  const icons = ICONS[iconStyle || 'circles']
+  return <span className="text-lg">{icons[status] || icons.null}</span>
 }
