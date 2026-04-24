@@ -12,7 +12,7 @@ const MONTHLY_PROMPTS = [
 ]
 
 export default function IntentionsPage() {
-  const { topics, history, user } = useAppStore()
+  const { topics, history, user, setTopicIntentionLocal } = useAppStore()
   const [topicIntentions, setTopicIntentions] = useState({}) // topicId -> string
   const [monthlyIntention, setMonthlyIntention] = useState('')
   const [editingTopic, setEditingTopic] = useState(null)
@@ -69,6 +69,7 @@ export default function IntentionsPage() {
 
   async function saveTopicIntention(topicId, value) {
     setTopicIntentions(prev => ({ ...prev, [topicId]: value }))
+    setTopicIntentionLocal(topicId, value) // update global store so check-in sees it
     setEditingTopic(null)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)

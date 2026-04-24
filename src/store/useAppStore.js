@@ -26,6 +26,9 @@ const useAppStore = create(
       history: [],
       historyLoaded: false,
 
+      // Intentions (topicId -> text)
+      topicIntentions: {},
+
       // Settings
       reminderTime: null,
       celebrationsEnabled: true,
@@ -195,8 +198,9 @@ const useAppStore = create(
             isLoading: false,
           })
 
-          // Load history in background
+          // Load history and intentions in background
           get().loadHistory()
+          get().loadIntentions()
 
         } catch (err) {
           console.error('Error loading user data:', err)
@@ -406,6 +410,29 @@ const useAppStore = create(
         if (!error && data) {
           set({ history: data, historyLoaded: true })
         }
+      },
+
+      // --- INTENTIONS ---
+      loadIntentions: async () => {
+        const { user } = get()
+        if (!isSupabaseConfigured || !user) return
+        const { data } = await supabase
+          .from('intentions')
+          .select('topic_id, text, type')
+          .eq('user_id', user.id)
+          .eq('type', 'topic')
+          .not('topic_id', 'is', null)
+        if (data) {
+          const map = {}
+          data.forEach(item => { map[item.topic_id] = item.text })
+          set({ topicIntentions: map })
+        }
+      },
+
+      setTopicIntentionLocal: (topicId, text) => {
+        set(state => ({
+          topicIntentions: { ...state.topicIntentions, [topicId]: text }
+        }))
       },
 
       // --- JOURNAL ---

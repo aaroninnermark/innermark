@@ -40,6 +40,8 @@ export default function TopicCheckinRow({ topic, entry }) {
   const selectedStatus = entry?.status
   const note = entry?.note || ''
   const icons = ICON_STYLES[iconStyle || 'circles']?.icons || ICON_STYLES.circles.icons
+  const { topicIntentions } = useAppStore()
+  const intention = topicIntentions?.[topic.id]
 
   return (
     <div
@@ -52,7 +54,14 @@ export default function TopicCheckinRow({ topic, entry }) {
     >
       <div className="flex items-center gap-3">
         <span className="text-xl">{topic.emoji}</span>
-        <span className="flex-1 text-base font-medium text-warm-800">{topic.name}</span>
+        <div className="flex-1 min-w-0">
+          <span className="text-base font-medium text-warm-800 block">{topic.name}</span>
+          {intention ? (
+            <span className="text-xs text-warm-400 italic block truncate" title={intention}>
+              {intention}
+            </span>
+          ) : null}
+        </div>
 
         <div className="flex gap-2">
           {(['red', 'yellow', 'green']).map(status => (
