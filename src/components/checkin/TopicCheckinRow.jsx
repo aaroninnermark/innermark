@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import useAppStore from '../../store/useAppStore'
+import { supabase, isSupabaseConfigured } from '../../lib/supabase'
 import clsx from 'clsx'
 
-// Icon styles: each has red/yellow/green variants
 export const ICON_STYLES = {
   circles: {
     label: 'Colored Circles',
@@ -33,15 +33,31 @@ const STATUS_LABELS = {
   green: 'Good',
 }
 
-export default function TopicCheckinRow({ topic, entry }) {
+export default function TopicCheckinRow({ topic, entry, recentRedCount = 0 }) {
   const [showNote, setShowNote] = useState(false)
-  const { setEntryStatus, setEntryNote, iconStyle } = useAppStore()
+  const [editingIntention, setEditingIntention] = useState(false)
+  const [intentionDraft, setIntentionDraft] = useState('')
+  const { setEntryStatus, setEntryNote, iconStyle, topicIntentions, setTopicIntentionLocal, user } = useAppStore()
 
   const selectedStatus = entry?.status
   const note = entry?.note || ''
   const icons = ICON_STYLES[iconStyle || 'circles']?.icons || ICON_STYLES.circles.icons
-  const { topicIntentions } = useAppStore()
   const intention = topicIntentions?.[topic.id]
+
+  async function saveIntention() {
+    if (!intentionDraft.trim()) { setEditingIntention(false); return }
+    setTopicIntentionLocal(topic.id, intentionDraft.trim())
+    setEditingIntention(false)
+    if (isSupabaseConfigured && user) {
+      await supabase.from('intentions').upsert({
+        user_id: user.id,
+        topic_id: topic.id,
+        type: 'topic',
+        text: intentionDraft.trim(),
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id,topic_id,type' })
+    }
+  }
 
   return (
     <div
@@ -52,25 +68,52 @@ export default function TopicCheckinRow({ topic, entry }) {
         !selectedStatus && 'border border-warm-100'
       )}
     >
+      {/* Red alert nudge */}
+      {recentRedCount >= 7 && (
+        <div className="flex items-center gap-2 mb-2 bg-red-50 rounded-xl px-3 py-1.5 -mx-1">
+          <span className="text-xs text-red-500">This has been hard lately. What's one small thing that might help?</span>
+        </div>
+      )}
+
       <div className="flex items-center gap-3">
         <span className="text-xl">{topic.emoji}</span>
         <div className="flex-1 min-w-0">
-          {/* Category as small label */}
+          {/* Category label */}
           <span className="text-xs font-semibold text-warm-400 uppercase tracking-wide block">
             {topic.name}
           </span>
-          {intention ? (
-            /* Intention as the primary text */
-            <span className="text-sm font-medium text-warm-800 block leading-snug">
-              {intention}
-            </span>
-          ) : (
-            /* Empty state prompt */
+
+          {editingIntention ? (
+            /* Inline intention editor */
+            <div className="mt-1">
+              <input
+                type="text"
+                value={intentionDraft}
+                onChange={e => setIntentionDraft(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') saveIntention(); if (e.key === 'Escape') setEditingIntention(false) }}
+                placeholder={`A good day in ${topic.name.toLowerCase()} feels like...`}
+                className="w-full bg-white rounded-lg px-2 py-1 text-xs text-warm-800 border border-sage-300 focus:outline-none"
+                maxLength={120}
+                autoFocus
+              />
+              <div className="flex gap-2 mt-1">
+                <button onClick={() => setEditingIntention(false)} className="text-xs text-warm-400 hover:text-warm-600">Cancel</button>
+                <button onClick={saveIntention} className="text-xs text-sage-600 font-medium hover:text-sage-800">Save →</button>
+              </div>
+            </div>
+          ) : intention ? (
+            /* Intention shown as primary — tap to edit */
             <button
-              onClick={e => {
-                e.stopPropagation()
-                window.dispatchEvent(new CustomEvent('navigate-to-intentions'))
-              }}
+              onClick={() => { setIntentionDraft(intention); setEditingIntention(true) }}
+              className="text-sm font-medium text-warm-800 block text-left w-full hover:text-sage-700 transition-colors"
+              title="Tap to edit intention"
+            >
+              {intention}
+            </button>
+          ) : (
+            /* No intention set — prompt to add */
+            <button
+              onClick={() => { setIntentionDraft(''); setEditingIntention(true) }}
               className="text-xs text-sage-500 italic hover:text-sage-700 transition-colors text-left"
             >
               ✏️ What does a good day here look like?
@@ -78,16 +121,15 @@ export default function TopicCheckinRow({ topic, entry }) {
           )}
         </div>
 
-        <div className="flex gap-2">
+        {/* Status icons */}
+        <div className="flex gap-2 flex-shrink-0">
           {(['red', 'yellow', 'green']).map(status => (
             <button
               key={status}
               onClick={() => setEntryStatus(topic.id, selectedStatus === status ? null : status)}
               className={clsx(
                 'text-2xl transition-all duration-150 active:scale-90 select-none leading-none',
-                selectedStatus === status
-                  ? 'scale-110 drop-shadow-md'
-                  : 'opacity-60 hover:opacity-100'
+                selectedStatus === status ? 'scale-110 drop-shadow-md' : 'opacity-60 hover:opacity-100'
               )}
               aria-label={STATUS_LABELS[status]}
             >
@@ -97,6 +139,7 @@ export default function TopicCheckinRow({ topic, entry }) {
         </div>
       </div>
 
+      {/* Note toggle */}
       {selectedStatus && (
         <div className="mt-2">
           <button
@@ -106,7 +149,6 @@ export default function TopicCheckinRow({ topic, entry }) {
             {showNote ? '▲' : '▼'}
             {note ? 'Edit note' : 'Add note (optional)'}
           </button>
-
           {showNote && (
             <textarea
               value={note}

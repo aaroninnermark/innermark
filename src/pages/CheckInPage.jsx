@@ -151,11 +151,10 @@ export default function CheckInPage() {
         </div>
 
         {/* What's next bridge */}
-        <div className="grid grid-cols-3 gap-2 mb-3">
+        <div className="grid grid-cols-2 gap-2 mb-3">
           {[
             { label: 'Trends', icon: '📊', path: '/trends' },
             { label: 'Journal', icon: '📝', path: '/journal' },
-            { label: 'Intentions', icon: '🧭', path: '/intentions' },
           ].map(item => (
             <button
               key={item.path}
@@ -220,13 +219,22 @@ export default function CheckInPage() {
 
       {/* Topics */}
       <div className="space-y-2 mb-4">
-        {topics.map(topic => (
-          <TopicCheckinRow
-            key={topic.id}
-            topic={topic}
-            entry={currentEntries[topic.id]}
-          />
-        ))}
+        {topics.map(topic => {
+          // Count red days in last 14 days for this topic
+          const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 14)
+          const recentRedCount = history.filter(h => {
+            return new Date(h.date) >= cutoff &&
+              h.topic_entries?.find(e => e.topic_id === topic.id && e.status === 'red')
+          }).length
+          return (
+            <TopicCheckinRow
+              key={topic.id}
+              topic={topic}
+              entry={currentEntries[topic.id]}
+              recentRedCount={recentRedCount}
+            />
+          )
+        })}
       </div>
 
       {topics.length === 0 && (
