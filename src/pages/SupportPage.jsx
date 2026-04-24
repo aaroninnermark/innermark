@@ -1,82 +1,10 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 
 const TABS = [
-  { id: 'insights', label: 'Insights', icon: '💡' },
   { id: 'books', label: 'Books', icon: '📚' },
   { id: 'music', label: 'Music', icon: '🎵' },
   { id: 'coaching', label: 'Coaching', icon: '🤝' },
 ]
-
-// Daily prompts — rotate by day of year
-const PROMPTS = [
-  // Self-Compassion
-  { theme: 'Self-Compassion', text: 'What would you say to a close friend who was struggling the way you are right now?' },
-  { theme: 'Self-Compassion', text: 'Where are you holding yourself to a standard you would never impose on someone you love?' },
-  { theme: 'Self-Compassion', text: 'What part of yourself have you been trying hardest to fix — and what if it didn\'t need fixing?' },
-  { theme: 'Self-Compassion', text: 'What\'s one thing you did today, no matter how small, that deserves acknowledgment?' },
-  { theme: 'Self-Compassion', text: 'If your inner critic had a name, what would it be — and what is it actually afraid of?' },
-  { theme: 'Self-Compassion', text: 'What does rest feel like for you, without guilt?' },
-  { theme: 'Self-Compassion', text: 'What are you carrying right now that isn\'t yours to carry?' },
-  // Shame & Healing
-  { theme: 'Shame & Healing', text: 'What\'s something you\'ve been afraid to say out loud, even to yourself?' },
-  { theme: 'Shame & Healing', text: 'Where does shame live in your body? What does it feel like physically?' },
-  { theme: 'Shame & Healing', text: 'What story have you been telling about yourself that began with someone else\'s words?' },
-  { theme: 'Shame & Healing', text: 'What would it mean to stop earning your worth and simply have it?' },
-  { theme: 'Shame & Healing', text: 'What part of your story are you most ashamed of — and what did it teach you?' },
-  { theme: 'Shame & Healing', text: 'Who taught you that you were too much, or not enough? Do you still believe them?' },
-  { theme: 'Shame & Healing', text: 'What would healing look like for you — not as a destination, but as a direction?' },
-  // Integration
-  { theme: 'Integration', text: 'What insight have you had that you haven\'t yet put into action?' },
-  { theme: 'Integration', text: 'What has life been trying to show you lately that you\'ve been resisting?' },
-  { theme: 'Integration', text: 'Where is the gap between who you know you can be and how you\'re currently living?' },
-  { theme: 'Integration', text: 'What experience changed you — and have you fully honored what it asked of you?' },
-  { theme: 'Integration', text: 'What does your body know that your mind hasn\'t caught up to yet?' },
-  { theme: 'Integration', text: 'If your life were trying to teach you something right now, what would it be?' },
-  { theme: 'Integration', text: 'What pattern keeps repeating — and what might it be asking you to look at?' },
-  // Growth & Change
-  { theme: 'Growth & Change', text: 'What\'s one thing you\'ve been putting off that, if you did it, would change everything?' },
-  { theme: 'Growth & Change', text: 'Where are you choosing comfort over growth right now?' },
-  { theme: 'Growth & Change', text: 'What does the version of you that you\'re becoming actually look like?' },
-  { theme: 'Growth & Change', text: 'What would you do today if you knew you couldn\'t fail?' },
-  { theme: 'Growth & Change', text: 'What old version of yourself are you holding onto that no longer serves you?' },
-  { theme: 'Growth & Change', text: 'What does growth cost you — and are you willing to pay it?' },
-  { theme: 'Growth & Change', text: 'Where in your life are you playing it safe when you know you\'re meant for more?' },
-  // Forgiveness
-  { theme: 'Forgiveness', text: 'Who are you still punishing — yourself or someone else — by holding onto this?' },
-  { theme: 'Forgiveness', text: 'What would it cost you to forgive? What would it give you?' },
-  { theme: 'Forgiveness', text: 'Is there something you\'ve done that you haven\'t yet forgiven yourself for?' },
-  { theme: 'Forgiveness', text: 'What resentment is taking up space that could be used for something better?' },
-  { theme: 'Forgiveness', text: 'Forgiveness isn\'t saying it was okay. What did it teach you that nothing else could?' },
-  // Presence & Awareness
-  { theme: 'Presence', text: 'What is actually happening right now — separate from your story about it?' },
-  { theme: 'Presence', text: 'When did you last feel fully alive? What was present in that moment?' },
-  { theme: 'Presence', text: 'What are you not seeing because you\'re too busy thinking about what already happened?' },
-  { theme: 'Presence', text: 'Where is your mind right now — and where would you like it to be?' },
-  { theme: 'Presence', text: 'What would change if you brought 10% more attention to what\'s in front of you today?' },
-  // Intention & Direction
-  { theme: 'Intention', text: 'What do you most want your life to feel like — not look like, but feel like?' },
-  { theme: 'Intention', text: 'What are you moving toward right now, and is that actually where you want to go?' },
-  { theme: 'Intention', text: 'What would you have to let go of to become who you\'re meant to be?' },
-  { theme: 'Intention', text: 'If you knew this was the only year you had, what would you stop tolerating?' },
-  { theme: 'Intention', text: 'What is your life asking of you right now?' },
-  // Relationships
-  { theme: 'Relationships', text: 'Where are you showing up fully in your relationships — and where are you hiding?' },
-  { theme: 'Relationships', text: 'What do the people closest to you need from you that you haven\'t been giving?' },
-  { theme: 'Relationships', text: 'What boundary have you been avoiding that you know you need to set?' },
-  { theme: 'Relationships', text: 'Who in your life brings out the best version of you — and how often do you prioritize them?' },
-  { theme: 'Relationships', text: 'Where are you seeking validation instead of connection?' },
-]
-
-const THEME_COLORS = {
-  'Self-Compassion': 'bg-rose-50 text-rose-700 border-rose-100',
-  'Shame & Healing': 'bg-purple-50 text-purple-700 border-purple-100',
-  'Integration': 'bg-sage-50 text-sage-700 border-sage-100',
-  'Growth & Change': 'bg-amber-50 text-amber-700 border-amber-100',
-  'Forgiveness': 'bg-blue-50 text-blue-700 border-blue-100',
-  'Presence': 'bg-teal-50 text-teal-700 border-teal-100',
-  'Intention': 'bg-indigo-50 text-indigo-700 border-indigo-100',
-  'Relationships': 'bg-pink-50 text-pink-700 border-pink-100',
-}
 
 const BOOKS = [
   {
@@ -191,21 +119,8 @@ const MUSIC = [
 ]
 
 export default function SupportPage() {
-  const [activeTab, setActiveTab] = useState('insights')
+  const [activeTab, setActiveTab] = useState('books')
   const [openBook, setOpenBook] = useState(null)
-  const [selectedTheme, setSelectedTheme] = useState('all')
-
-  // Rotate prompt daily
-  const todayPrompt = useMemo(() => {
-    const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000)
-    return PROMPTS[dayOfYear % PROMPTS.length]
-  }, [])
-
-  // All unique themes
-  const promptThemes = ['all', ...new Set(PROMPTS.map(p => p.theme))]
-  const filteredPrompts = selectedTheme === 'all'
-    ? PROMPTS
-    : PROMPTS.filter(p => p.theme === selectedTheme)
 
   return (
     <div className="page-container animate-fade-in">
@@ -228,48 +143,6 @@ export default function SupportPage() {
           </button>
         ))}
       </div>
-
-      {/* INSIGHTS */}
-      {activeTab === 'insights' && (
-        <div className="animate-fade-in">
-          {/* Today's prompt */}
-          <div className="card bg-sage-50 border-sage-200 mb-5">
-            <p className="text-xs font-semibold text-sage-600 uppercase tracking-wide mb-2">Today's reflection</p>
-            <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-lg border mb-3 ${THEME_COLORS[todayPrompt.theme] || 'bg-warm-100 text-warm-600 border-warm-200'}`}>
-              {todayPrompt.theme}
-            </span>
-            <p className="text-base text-sage-800 leading-relaxed font-medium">"{todayPrompt.text}"</p>
-          </div>
-
-          {/* Filter by theme */}
-          <div className="flex gap-2 mb-4 overflow-x-auto pb-1 -mx-4 px-4">
-            {promptThemes.map(theme => (
-              <button
-                key={theme}
-                onClick={() => setSelectedTheme(theme)}
-                className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
-                  selectedTheme === theme
-                    ? 'bg-sage-600 text-white'
-                    : 'bg-warm-100 text-warm-600 hover:bg-warm-200'
-                }`}
-              >
-                {theme === 'all' ? 'All' : theme}
-              </button>
-            ))}
-          </div>
-
-          <div className="space-y-3">
-            {filteredPrompts.map((prompt, i) => (
-              <div key={i} className="card">
-                <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-lg border mb-2 ${THEME_COLORS[prompt.theme] || 'bg-warm-100 text-warm-600 border-warm-200'}`}>
-                  {prompt.theme}
-                </span>
-                <p className="text-sm text-warm-800 leading-relaxed">"{prompt.text}"</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* BOOKS */}
       {activeTab === 'books' && (

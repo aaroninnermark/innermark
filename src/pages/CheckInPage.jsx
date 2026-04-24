@@ -3,6 +3,7 @@ import { format } from 'date-fns'
 import useAppStore from '../store/useAppStore'
 import { getInsightMessage, getCoachingPromptTopics } from '../lib/insights'
 import { fireConfetti } from '../lib/confetti'
+import { getTodaysPrompt } from '../lib/prompts'
 import toast from 'react-hot-toast'
 import TopicCheckinRow from '../components/checkin/TopicCheckinRow'
 import InsightScreen from '../components/checkin/InsightScreen'
@@ -216,17 +217,20 @@ export default function CheckInPage() {
         </div>
       )}
 
-      {/* Day note */}
+      {/* Day note with daily prompt */}
       <div className="card mb-5">
-        <label className="block text-sm font-medium text-warm-600 mb-2">
-          Anything to note about today? <span className="text-warm-300 font-normal">(optional)</span>
-        </label>
+        <div className="flex items-start gap-2 mb-3">
+          <span className="text-base">💭</span>
+          <p className="text-xs text-warm-500 italic leading-relaxed flex-1">
+            "{getTodaysPrompt()}"
+          </p>
+        </div>
         <textarea
           value={dayNote}
           onChange={e => setDayNote(e.target.value)}
-          placeholder="A quick note, a feeling, anything..."
-          rows={2}
-          className="w-full bg-transparent resize-none text-sm text-warm-800 placeholder-warm-300 focus:outline-none"
+          placeholder="Write something, or leave it blank..."
+          rows={3}
+          className="w-full bg-warm-50 rounded-xl p-3 resize-none text-sm text-warm-800 placeholder-warm-300 focus:outline-none border border-warm-100 focus:border-sage-300 transition-colors"
           maxLength={500}
         />
         {dayNote && (
