@@ -19,6 +19,7 @@ export default function CheckInPage() {
     history,
     isPremium,
     celebrationsEnabled,
+    topicIntentions,
     setDayNote,
     submitCheckin,
     resetTodayCheckin,
@@ -118,10 +119,20 @@ export default function CheckInPage() {
           <div className="space-y-2">
             {topics.map(topic => {
               const entry = todayCheckin.topic_entries?.find(e => e.topic_id === topic.id)
+              const intention = topicIntentions?.[topic.id]
               return (
                 <div key={topic.id} className="flex items-center gap-3 py-1">
                   <span className="text-lg">{topic.emoji}</span>
-                  <span className="text-sm text-warm-700 flex-1">{topic.name}</span>
+                  <div className="flex-1 min-w-0">
+                    {intention ? (
+                      <>
+                        <span className="text-xs text-warm-400 uppercase tracking-wide block">{topic.name}</span>
+                        <span className="text-sm text-warm-700 block truncate">{intention}</span>
+                      </>
+                    ) : (
+                      <span className="text-sm text-warm-700">{topic.name}</span>
+                    )}
+                  </div>
                   {entry ? (
                     <StatusDot status={entry.status} />
                   ) : (

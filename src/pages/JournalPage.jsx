@@ -11,7 +11,7 @@ const DATE_FILTERS = [
 ]
 
 export default function JournalPage() {
-  const { history, topics, saveJournalEntry, updateJournalEntry, deleteJournalEntry } = useAppStore()
+  const { history, topics, topicIntentions, saveJournalEntry, updateJournalEntry, deleteJournalEntry } = useAppStore()
   const [search, setSearch] = useState('')
   const [filterTopic, setFilterTopic] = useState('all')
   const [filterDate, setFilterDate] = useState('all')
@@ -236,9 +236,18 @@ export default function JournalPage() {
                     <div>
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-lg">{note.topicEmoji}</span>
-                        <span className="text-xs font-medium text-warm-500">
-                          {note.type === 'day' ? 'Day note' : note.topicName}
-                        </span>
+                        <div>
+                          {note.type === 'day' ? (
+                            <span className="text-xs font-medium text-warm-500">Day note</span>
+                          ) : (
+                            <>
+                              <span className="text-xs text-warm-400 uppercase tracking-wide block">{note.topicName}</span>
+                              {note.topicId && topicIntentions?.[note.topicId] && (
+                                <span className="text-xs font-medium text-warm-700">{topicIntentions[note.topicId]}</span>
+                              )}
+                            </>
+                          )}
+                        </div>
                       </div>
                       <textarea
                         value={editText}
@@ -278,11 +287,20 @@ export default function JournalPage() {
                     <div className="flex items-start gap-3">
                       <span className="text-lg mt-0.5">{note.topicEmoji}</span>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-medium text-warm-500">
-                            {note.type === 'day' ? 'Day note' : note.topicName}
-                          </span>
-                          {note.status && <span className="text-sm">{STATUS_EMOJI[note.status]}</span>}
+                        <div className="flex items-start gap-2 mb-1">
+                          <div className="flex-1 min-w-0">
+                            {note.type === 'day' ? (
+                              <span className="text-xs font-medium text-warm-500">Day note</span>
+                            ) : (
+                              <>
+                                <span className="text-xs text-warm-400 uppercase tracking-wide block">{note.topicName}</span>
+                                {note.topicId && topicIntentions?.[note.topicId] && (
+                                  <span className="text-xs font-medium text-warm-700 block truncate">{topicIntentions[note.topicId]}</span>
+                                )}
+                              </>
+                            )}
+                          </div>
+                          {note.status && <span className="text-sm flex-shrink-0">{STATUS_EMOJI[note.status]}</span>}
                         </div>
                         <p className="text-sm text-warm-800 leading-relaxed">{note.text}</p>
                       </div>

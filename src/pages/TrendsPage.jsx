@@ -22,7 +22,7 @@ const STATUS_COLOR = {
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 export default function TrendsPage() {
-  const { topics, history, isPremium, historyLoaded } = useAppStore()
+  const { topics, history, isPremium, historyLoaded, topicIntentions } = useAppStore()
   const [selectedRange, setSelectedRange] = useState('7')
   const [viewMode, setViewMode] = useState('grid')
   const [showPremiumPrompt, setShowPremiumPrompt] = useState(false)
@@ -182,6 +182,7 @@ export default function TrendsPage() {
             dataMap={dataMap}
             topicTotals={topicTotals}
             startDate={startDate}
+            topicIntentions={topicIntentions}
           />
         ) : (
           <LinearGridView
@@ -189,6 +190,7 @@ export default function TrendsPage() {
             allDays={allDays}
             dataMap={dataMap}
             topicTotals={topicTotals}
+            topicIntentions={topicIntentions}
           />
         )
       ) : (
@@ -217,7 +219,7 @@ function StatCard({ value, label, icon, highlight }) {
 }
 
 // Calendar grid: 7 columns (Sun-Sat), rows = weeks, one section per topic
-function CalendarGridView({ topics, allDays, dataMap, topicTotals, startDate }) {
+function CalendarGridView({ topics, allDays, dataMap, topicTotals, startDate, topicIntentions }) {
   const todayStr = format(new Date(), 'yyyy-MM-dd')
 
   // Build calendar grid — pad start to Sunday
@@ -244,11 +246,18 @@ function CalendarGridView({ topics, allDays, dataMap, topicTotals, startDate }) 
           <div key={topic.id} className="card p-0 overflow-hidden">
             {/* Topic header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-warm-100">
-              <span className="text-sm font-semibold text-warm-800">
-                {topic.emoji} {topic.name}
-              </span>
+              <div className="flex-1 min-w-0 mr-3">
+                <span className="text-xs font-semibold text-warm-400 uppercase tracking-wide block">
+                  {topic.emoji} {topic.name}
+                </span>
+                {topicIntentions?.[topic.id] ? (
+                  <span className="text-sm font-medium text-warm-800 block truncate">
+                    {topicIntentions[topic.id]}
+                  </span>
+                ) : null}
+              </div>
               {totals.total > 0 && (
-                <span className="text-xs text-warm-400">
+                <span className="text-xs text-warm-400 flex-shrink-0">
                   🟢{totals.green} 🟡{totals.yellow} 🔴{totals.red}
                 </span>
               )}
@@ -320,7 +329,7 @@ function CalendarGridView({ topics, allDays, dataMap, topicTotals, startDate }) 
 }
 
 // Linear grid: original horizontal scroll view for 7 days
-function LinearGridView({ topics, allDays, dataMap, topicTotals }) {
+function LinearGridView({ topics, allDays, dataMap, topicTotals, topicIntentions }) {
   const maxCols = 14
   const gridDays = allDays.slice(-maxCols)
   const todayStr = format(new Date(), 'yyyy-MM-dd')
@@ -350,9 +359,15 @@ function LinearGridView({ topics, allDays, dataMap, topicTotals }) {
                 const totals = topicTotals[topic.id] || { green: 0, yellow: 0, red: 0, total: 0 }
                 return (
                   <tr key={topic.id} className="border-b border-warm-50">
-                    <td className="p-3 text-warm-700 font-medium sticky left-0 bg-white z-10 whitespace-nowrap">
-                      <span className="mr-1">{topic.emoji}</span>
-                      <span className="text-xs">{topic.name.length > 10 ? topic.name.slice(0, 9) + '…' : topic.name}</span>
+                    <td className="p-3 sticky left-0 bg-white z-10 max-w-[110px]">
+                      <span className="text-xs text-warm-400 uppercase tracking-wide block leading-none mb-0.5">
+                        {topic.emoji} {topic.name}
+                      </span>
+                      {topicIntentions?.[topic.id] ? (
+                        <span className="text-xs font-medium text-warm-700 block truncate">
+                          {topicIntentions[topic.id]}
+                        </span>
+                      ) : null}
                     </td>
                     {gridDays.map(day => {
                       const dateStr = format(day, 'yyyy-MM-dd')
@@ -412,8 +427,13 @@ function LinearGridView({ topics, allDays, dataMap, topicTotals }) {
               return (
                 <div key={topic.id}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-warm-700">{topic.emoji} {topic.name}</span>
-                    <span className="text-xs text-warm-400">🟢{t.green} 🟡{t.yellow} 🔴{t.red}</span>
+                    <div className="flex-1 min-w-0 mr-2">
+                      <span className="text-xs text-warm-400 uppercase tracking-wide block">{topic.emoji} {topic.name}</span>
+                      {topicIntentions?.[topic.id] && (
+                        <span className="text-xs font-medium text-warm-700 block truncate">{topicIntentions[topic.id]}</span>
+                      )}
+                    </div>
+                    <span className="text-xs text-warm-400 flex-shrink-0">🟢{t.green} 🟡{t.yellow} 🔴{t.red}</span>
                   </div>
                   <div className="flex h-2 rounded-full overflow-hidden">
                     {gPct > 0 && <div style={{ width: `${gPct}%`, backgroundColor: STATUS_COLOR.green }} />}
