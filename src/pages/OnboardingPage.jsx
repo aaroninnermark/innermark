@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import useAppStore from '../store/useAppStore'
+import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import toast from 'react-hot-toast'
 
 const TOPIC_GROUPS = [
@@ -53,37 +54,63 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(0)
   const [selectedTopics, setSelectedTopics] = useState([])
   const [customTopic, setCustomTopic] = useState('')
-  const [intentions, setIntentions] = useState({}) // topicName -> intention string
+  const [intentions, setIntentions] = useState({})
   const [reminderTime, setReminderTime] = useState('20:00')
   const [loading, setLoading] = useState(false)
+  const [overLimit, setOverLimit] = useState(false)
 
-  const { addTopic, completeOnboarding, setReminderTime: saveReminderTime } = useAppStore()
+  const { addTopic, completeOnboarding, setReminderTime: saveReminderTime, signOut } = useAppStore()
   const navigate = useNavigate()
 
   const currentStep = STEPS[step]
+  const FREE_LIMIT = 8
 
   function toggleTopic(topic) {
     setSelectedTopics(prev => {
       const exists = prev.find(t => t.name === topic.name)
-      if (exists) return prev.filter(t => t.name !== topic.name)
-      if (prev.length >= 8) {
-        toast.error('Free plan allows up to 8 topics')
+      if (exists) {
+        setOverLimit(false)
+        return prev.filter(t => t.name !== topic.name)
+      }
+      if (prev.length >= FREE_LIMIT) {
+        setOverLimit(true)
         return prev
       }
+      setOverLimit(false)
       return [...prev, topic]
     })
   }
 
   function addCustomTopic() {
     if (!customTopic.trim()) return
-    if (selectedTopics.length >= 8) {
-      toast.error('Free plan allows up to 8 topics')
+    if (selectedTopics.length >= FREE_LIMIT) {
+      setOverLimit(true)
       return
     }
     const topic = { name: customTopic.trim(), emoji: '⭐' }
     if (selectedTopics.find(t => t.name === topic.name)) return
     setSelectedTopics(prev => [...prev, topic])
     setCustomTopic('')
+    setOverLimit(false)
+  }
+
+  async function handleSignOut() {
+    await signOut()
+    navigate('/auth')
+  }
+
+  async function handleReset() {
+    // Wipe any orphaned topics for this user and restart
+    const { user } = useAppStore.getState()
+    if (user && isSupabaseConfigured) {
+      await supabase.from('topics').delete().eq('user_id', user.id)
+      await supabase.from('profiles').update({ onboarding_complete: false }).eq('id', user.id)
+    }
+    setSelectedTopics([])
+    setIntentions({})
+    setOverLimit(false)
+    setStep(0)
+    toast.success('Profile reset — start fresh!')
   }
 
   async function handleFinish() {
@@ -93,28 +120,31 @@ export default function OnboardingPage() {
     }
     setLoading(true)
     try {
-      // Create topics and collect their IDs
+      const { user } = useAppStore.getState()
+
+      // Delete any orphaned topics first to prevent duplicate/limit errors
+      if (user && isSupabaseConfigured) {
+        await supabase.from('topics').delete().eq('user_id', user.id)
+      }
+
+      // Create fresh topics
       const createdTopics = []
       for (const topic of selectedTopics) {
         const created = await addTopic(topic.name, topic.emoji)
         createdTopics.push({ ...topic, id: created.id })
       }
 
-      // Save any intentions set during onboarding
-      const { user } = useAppStore.getState()
-      if (user) {
-        const { supabase, isSupabaseConfigured } = await import('../lib/supabase')
-        if (isSupabaseConfigured) {
-          for (const topic of createdTopics) {
-            const intentionText = intentions[topic.name]
-            if (intentionText?.trim()) {
-              await supabase.from('intentions').upsert({
-                user_id: user.id,
-                topic_id: topic.id,
-                type: 'topic',
-                text: intentionText.trim(),
-              }, { onConflict: 'user_id,topic_id,type' })
-            }
+      // Save intentions set during onboarding
+      if (user && isSupabaseConfigured) {
+        for (const topic of createdTopics) {
+          const intentionText = intentions[topic.name]
+          if (intentionText?.trim()) {
+            await supabase.from('intentions').upsert({
+              user_id: user.id,
+              topic_id: topic.id,
+              type: 'topic',
+              text: intentionText.trim(),
+            }, { onConflict: 'user_id,topic_id,type' })
           }
         }
       }
@@ -124,6 +154,8 @@ export default function OnboardingPage() {
       navigate('/')
     } catch (err) {
       toast.error(err.message || 'Something went wrong')
+      // Show reset option on error
+      toast('Having trouble? Use the reset option below.', { icon: '🔄', duration: 5000 })
     } finally {
       setLoading(false)
     }
@@ -131,8 +163,24 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-sage-50 to-warm-50 flex flex-col">
+      {/* Top bar with escape hatch */}
+      <div className="flex items-center justify-between px-6 pt-6 pb-0">
+        <button
+          onClick={handleSignOut}
+          className="text-xs text-warm-300 hover:text-warm-500 transition-colors"
+        >
+          ← Back to login
+        </button>
+        <button
+          onClick={handleReset}
+          className="text-xs text-warm-300 hover:text-red-400 transition-colors"
+        >
+          Reset
+        </button>
+      </div>
+
       {/* Progress dots */}
-      <div className="flex justify-center gap-2 pt-12 pb-2">
+      <div className="flex justify-center gap-2 pt-4 pb-2">
         {STEPS.map((s, i) => (
           <div
             key={s}
@@ -230,6 +278,15 @@ export default function OnboardingPage() {
               </p>
             </div>
 
+            {/* Over-limit warning */}
+            {overLimit && (
+              <div className="mb-3 bg-red-50 border border-red-200 rounded-2xl px-4 py-3">
+                <p className="text-xs text-red-600 font-medium">
+                  Free plan allows up to 8 topics. Remove one to add another, or upgrade to Premium for up to 25.
+                </p>
+              </div>
+            )}
+
             <div className="space-y-4 mb-4">
               {TOPIC_GROUPS.map(group => (
                 <div key={group.group}>
@@ -239,6 +296,7 @@ export default function OnboardingPage() {
                   <div className="grid grid-cols-2 gap-2">
                     {group.topics.map(topic => {
                       const selected = selectedTopics.find(t => t.name === topic.name)
+                      const atLimit = !selected && selectedTopics.length >= FREE_LIMIT
                       return (
                         <button
                           key={topic.name}
@@ -246,12 +304,14 @@ export default function OnboardingPage() {
                           className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all text-sm font-medium ${
                             selected
                               ? 'border-sage-500 bg-sage-50 text-sage-800'
+                              : atLimit
+                              ? 'border-red-200 bg-red-50 text-red-400 opacity-60'
                               : 'border-warm-100 bg-white text-warm-700 hover:border-warm-200'
                           }`}
                         >
                           <span>{topic.emoji}</span>
                           <span className="flex-1 text-left">{topic.name}</span>
-                          {selected && <span className="text-sage-500 text-xs">✓</span>}
+                          {selected && <span className="text-sage-500 text-xs font-bold">✓</span>}
                         </button>
                       )
                     })}
@@ -270,39 +330,49 @@ export default function OnboardingPage() {
                 placeholder="Add your own area..."
                 className="input-field flex-1 text-sm"
                 maxLength={40}
+                disabled={selectedTopics.length >= FREE_LIMIT}
               />
               <button
                 onClick={addCustomTopic}
-                disabled={!customTopic.trim()}
+                disabled={!customTopic.trim() || selectedTopics.length >= FREE_LIMIT}
                 className="btn-secondary px-4 disabled:opacity-40"
               >
                 +
               </button>
             </div>
 
-            {selectedTopics.length > 0 && (
-              <div className="mb-4 bg-sage-50 rounded-2xl p-3 border border-sage-100">
-                <p className="text-xs text-sage-600 font-medium mb-2">
-                  Selected ({selectedTopics.length}/8):
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {selectedTopics.map(t => (
-                    <span
-                      key={t.name}
-                      className="flex items-center gap-1 bg-white text-sage-700 px-3 py-1 rounded-full text-xs border border-sage-200"
+            {/* Selected summary — color coded */}
+            <div className={`mb-4 rounded-2xl p-3 border transition-all ${
+              selectedTopics.length === 0
+                ? 'bg-warm-50 border-warm-100'
+                : selectedTopics.length <= FREE_LIMIT
+                ? 'bg-sage-50 border-sage-200'
+                : 'bg-red-50 border-red-200'
+            }`}>
+              <p className={`text-xs font-medium mb-2 ${
+                selectedTopics.length > FREE_LIMIT ? 'text-red-600' : 'text-sage-600'
+              }`}>
+                Selected ({selectedTopics.length}/{FREE_LIMIT}){selectedTopics.length === FREE_LIMIT ? ' — maximum reached' : ''}
+              </p>
+              {selectedTopics.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {selectedTopics.map(t => (
+                  <span
+                    key={t.name}
+                    className="flex items-center gap-1 bg-white text-sage-700 px-3 py-1 rounded-full text-xs border border-sage-200"
+                  >
+                    {t.emoji} {t.name}
+                    <button
+                      onClick={() => { setSelectedTopics(prev => prev.filter(p => p.name !== t.name)); setOverLimit(false) }}
+                      className="ml-1 text-sage-400 hover:text-sage-600"
                     >
-                      {t.emoji} {t.name}
-                      <button
-                        onClick={() => setSelectedTopics(prev => prev.filter(p => p.name !== t.name))}
-                        className="ml-1 text-sage-400 hover:text-sage-600"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
+                      ×
+                    </button>
+                  </span>
+                ))}
               </div>
-            )}
+              )}
+            </div>
 
             <div className="flex gap-3">
               <button onClick={() => setStep(1)} className="btn-ghost">Back</button>
