@@ -13,6 +13,7 @@ const BOOKS = [
       { title: 'Psychedelics and Psychotherapy', author: 'Tim Read', note: 'The most grounded clinical and experiential guide to working with psychedelic states.' },
       { title: 'The Immortality Key', author: 'Brian Muraresku', note: 'A deep investigation into the ancient sacramental roots of Western religion and psychedelic ritual.' },
       { title: 'The Transpersonal Vision', author: 'Stanislav Grof', note: 'The foundational framework for understanding non-ordinary states of consciousness from the pioneer of the field.' },
+      { title: 'The Ra Contact', author: 'Don Elkins', note: 'The Law of One material — a channeled transmission on consciousness, free will, and the nature of reality that has influenced countless seekers.' },
     ]
   },
   {
@@ -25,6 +26,11 @@ const BOOKS = [
       { title: 'Existential Kink', author: 'Carolyn Elliott', note: 'The uncomfortable idea that we unconsciously create what we suffer. A radical approach to shadow integration.' },
       { title: 'Man\'s Search for Meaning', author: 'Viktor Frankl', note: 'Written in a Nazi concentration camp. The most important book ever written about suffering and purpose.' },
       { title: 'Iron John', author: 'Robert Bly', note: 'The seminal work on masculine initiation, the wild man within, and what it means to grow into full manhood.' },
+      { title: 'The King Within', author: 'Douglas Gillette', note: 'Archetypal masculine psychology — the King, Warrior, Magician, and Lover archetypes that shape how men lead and love.' },
+      { title: 'Adult Children of Alcoholics', author: 'Janet Woititz', note: 'The foundational text for understanding the lasting patterns that come from growing up in a dysfunctional family.' },
+      { title: 'The Easy Way to Control Alcohol', author: 'Allen Carr', note: 'Carr\'s famous method applied to alcohol — addresses the psychological trap rather than relying on willpower.' },
+      { title: 'Difficult Conversations', author: 'Douglas Stone', note: 'A Harvard Negotiation Project framework for having the conversations we avoid most — and why we must have them.' },
+      { title: 'Healing Yourself with Your Own Voice', author: 'Don Campbell', note: 'The healing power of sound and voice — how toning, humming, and intentional listening restore the nervous system.' },
     ]
   },
   {
@@ -40,6 +46,19 @@ const BOOKS = [
       { title: 'Autobiography of a Yogi', author: 'Paramahansa Yogananda', note: 'The book that introduced the West to Eastern mysticism. Steve Jobs had it on his iPad at his death.' },
       { title: 'The Kybalion', author: 'The Three Initiates', note: 'The seven Hermetic principles — including mentalism, correspondence, and vibration — that underlie all esoteric traditions.' },
       { title: 'Quantum Psychology', author: 'Isaac Betanzos', note: 'The meeting point between quantum physics and the nature of mind and consciousness.' },
+      { title: 'The Secret', author: 'Osho', note: 'Osho\'s commentaries on Sufism — the hidden path, the nature of the divine, and the secret that cannot be spoken but only lived.' },
+      { title: 'The Cloud of Unknowing', author: 'Carmen Acevedo Butcher (trans.)', note: 'A 14th-century Christian mystical text on contemplative prayer — approaching God through unknowing rather than understanding.' },
+      { title: 'A Course in Mysticism and Miracles', author: 'Jon Mundy', note: 'A clear, accessible guide to the principles behind A Course in Miracles and the mystical path it points toward.' },
+      { title: 'Spiral Dynamics Integral', author: 'Don Beck', note: 'The developmental model of human values and worldviews — how individuals and cultures evolve through levels of consciousness.' },
+      { title: 'The Hidden Reality', author: 'Brian Greene', note: 'A physicist\'s tour of the multiverse — all the ways modern physics suggests our universe may be one of many.' },
+      { title: 'Whole Brain Living', author: 'Jill Bolte Taylor', note: 'The neuroscientist who had a stroke and found nirvana. A map of the four brain characters and how to live from the right hemisphere.' },
+      { title: 'The Contemplative Journey', author: 'Thomas Keating', note: 'Centering prayer and the Christian contemplative tradition — a practical guide to silent, receptive prayer.' },
+      { title: 'The Wisdom Jesus', author: 'Cynthia Bourgeault', note: 'Jesus as a wisdom teacher in the lineage of the world\'s great mystics — not a figure of doctrine but a path of transformation.' },
+      { title: 'The Critique of Pure Reason', author: 'Immanuel Kant', note: 'The foundational text of modern philosophy — Kant\'s investigation into the limits of human knowledge and the nature of reality.' },
+      { title: 'The Qur\'an', author: 'Abdel Haleem (trans.)', note: 'The central religious text of Islam — Haleem\'s translation is considered one of the most readable and accurate in English.' },
+      { title: 'The Theory of Everything', author: 'Ken Wilber', note: 'An introduction to Integral Theory — Wilber\'s framework for integrating science, spirituality, psychology, and culture into a single map.' },
+      { title: 'NLP: The New Technology of Achievement', author: 'Charles Faulkner', note: 'Neuro-linguistic programming as a practical toolkit for changing behavior, communication, and internal states.' },
+      { title: 'Great Mythologies of the World', author: 'The Great Courses', note: 'A comprehensive exploration of world mythology — the stories cultures tell about creation, the divine, and what it means to be human.' },
     ]
   },
   {
@@ -49,6 +68,7 @@ const BOOKS = [
       { title: 'Active Hope', author: 'Joanna Macy', note: 'How to face the state of the world without despair — and find meaningful action from a place of love.' },
       { title: 'Ishmael', author: 'Daniel Quinn', note: 'A gorilla teaches a man the story of civilization and what was lost. It will change how you see everything.' },
       { title: 'The Art of Living', author: 'Thich Nhat Hanh', note: 'Gentle and profound teachings on presence, interbeing, and the art of being fully alive.' },
+      { title: 'The Power Path Training', author: 'Jose Luis Stevens', note: 'Shamanic tools for navigating power — how to work with your own energy, avoid power leaks, and live with intention.' },
     ]
   },
   {
@@ -61,6 +81,8 @@ const BOOKS = [
       { title: 'The Way of the Bodhisattva', author: 'Shantideva', note: 'The classic Buddhist text on awakening — not for yourself, but for the sake of all beings.' },
       { title: 'The Story of Philosophy', author: 'Will Durant', note: 'The most readable introduction to Western philosophy ever written. A map of how humans have tried to understand existence.' },
       { title: 'As a Man Thinketh', author: 'James Allen', note: 'The original mind-as-garden metaphor. Short, timeless, and still one of the clearest statements on personal responsibility.' },
+      { title: 'Out of Your Mind', author: 'Alan Watts', note: 'Watts at his best — exploring the nature of consciousness, the illusion of the self, and why the universe is playing hide-and-seek with itself.' },
+      { title: 'The Lessons of History', author: 'Will Durant', note: 'A distillation of everything Durant learned from writing his 11-volume Story of Civilization. Sweeping, wise, and short.' },
     ]
   },
   {
@@ -72,6 +94,9 @@ const BOOKS = [
       { title: 'Maps of Meaning', author: 'Jordan Peterson', note: 'The mythological and psychological architecture of meaning — dense, but one of the most ambitious books of our era.' },
       { title: 'The Book of Joy', author: 'Dalai Lama & Desmond Tutu', note: 'Two of the world\'s greatest spiritual leaders on joy in the face of suffering. Remarkably practical.' },
       { title: 'I Know What to Do, So Why Don\'t I Do It?', author: 'Nick Hall', note: 'The neuroscience of why knowing isn\'t enough — and what actually creates lasting change.' },
+      { title: 'How to Win Friends and Influence People', author: 'Dale Carnegie', note: 'The original people skills book. Timeless principles for connection, persuasion, and genuine human understanding.' },
+      { title: 'The Success Principles', author: 'Jack Canfield', note: '64 principles distilled from decades of studying successful people — practical, comprehensive, and endlessly applicable.' },
+      { title: 'The Day That Turns Your Life Around', author: 'Jim Rohn', note: 'Rohn\'s teaching on the moments of decision that redirect a life — and how to deliberately create those turning points.' },
     ]
   },
   {
@@ -83,6 +108,9 @@ const BOOKS = [
       { title: 'The Richest Man in Babylon', author: 'George Clason', note: 'Timeless financial principles told through ancient Babylonian parables. Simple, memorable, and true.' },
       { title: 'The Compound Effect', author: 'Darren Hardy', note: 'Small consistent actions are the only real strategy. This book makes that undeniable.' },
       { title: 'Love Yourself Like Your Life Depends on It', author: 'Kamal Ravikant', note: 'One man\'s account of how a single practice — radical self-love — saved his life.' },
+      { title: 'You Were Born Rich', author: 'Bob Proctor', note: 'Proctor\'s foundational work on the paradigms that keep people from wealth — and how to shift them at the level of the subconscious.' },
+      { title: 'Thinking Big', author: 'Zig Ziglar', note: 'The case for enlarging your vision of what\'s possible — and the mindset shifts that allow ordinary people to achieve extraordinary things.' },
+      { title: 'The Secret', author: 'Rhonda Byrne', note: 'The law of attraction made mainstream. Whatever your view of the metaphysics, the core message about focus and belief has moved millions.' },
     ]
   },
 ]
