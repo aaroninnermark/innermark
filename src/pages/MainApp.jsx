@@ -5,9 +5,10 @@ import CheckInPage from './CheckInPage'
 import TrendsPage from './TrendsPage'
 import JournalPage from './JournalPage'
 import SupportPage from './SupportPage'
+import Logo, { LogoWatermark } from '../components/ui/Logo'
 
 const TABS = [
-  { id: 'checkin', path: '/', label: 'Check In', icon: '🏠' },
+  { id: 'checkin', path: '/', label: 'Check In', icon: null, isLogo: true },
   { id: 'trends', path: '/trends', label: 'Trends', icon: '📊' },
   { id: 'journal', path: '/journal', label: 'Journal', icon: '📝' },
   { id: 'support', path: '/support', label: 'Support', icon: '💡' },
@@ -49,17 +50,22 @@ export default function MainApp() {
   }
 
   return (
-    <div className="min-h-screen bg-warm-50">
-      <Routes>
-        <Route path="/" element={<CheckInPage />} />
-        <Route path="/trends" element={<TrendsPage />} />
-        <Route path="/journal" element={<JournalPage />} />
-        <Route path="/support" element={<SupportPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+    <div className="min-h-screen bg-warm-50 relative">
+      {/* Subtle logo watermark on every page */}
+      <LogoWatermark />
+
+      <div className="relative z-10">
+        <Routes>
+          <Route path="/" element={<CheckInPage />} />
+          <Route path="/trends" element={<TrendsPage />} />
+          <Route path="/journal" element={<JournalPage />} />
+          <Route path="/support" element={<SupportPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </div>
 
       {/* Bottom Tab Bar */}
-      <nav className="tab-bar">
+      <nav className="tab-bar z-20">
         {TABS.map(tab => (
           <button
             key={tab.id}
@@ -70,7 +76,14 @@ export default function MainApp() {
                 : 'text-warm-400 hover:text-warm-600'
             }`}
           >
-            <span className="text-xl leading-none">{tab.icon}</span>
+            {tab.isLogo ? (
+              <Logo
+                size={22}
+                className={`transition-opacity ${activeTab === tab.id ? 'opacity-100' : 'opacity-40'}`}
+              />
+            ) : (
+              <span className="text-xl leading-none">{tab.icon}</span>
+            )}
             <span className={`text-xs font-medium ${activeTab === tab.id ? 'text-sage-700' : ''}`}>
               {tab.label}
             </span>

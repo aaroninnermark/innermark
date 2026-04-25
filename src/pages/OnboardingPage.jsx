@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import useAppStore from '../store/useAppStore'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import toast from 'react-hot-toast'
+import Logo from '../components/ui/Logo'
 
 const TOPIC_GROUPS = [
   {
@@ -196,7 +197,9 @@ export default function OnboardingPage() {
         {/* SCREEN 1 — WELCOME */}
         {currentStep === 'welcome' && (
           <div className="text-center animate-fade-in">
-            <div className="text-7xl mb-6">🌿</div>
+            <div className="flex justify-center mb-6">
+              <Logo size={88} />
+            </div>
             <h1 className="text-3xl font-semibold text-sage-800 mb-4">Welcome to Innermark</h1>
             <p className="text-warm-600 text-base leading-relaxed mb-4">
               Most of us move through life on autopilot — reacting, surviving, getting through the day.
@@ -472,7 +475,9 @@ export default function OnboardingPage() {
         {/* SCREEN 6 — DONE */}
         {currentStep === 'done' && (
           <div className="text-center animate-fade-in">
-            <div className="text-6xl mb-4">🌿</div>
+            <div className="flex justify-center mb-4">
+              <Logo size={72} />
+            </div>
             <h2 className="text-2xl font-semibold text-sage-800 mb-2">You're ready</h2>
             <p className="text-warm-600 text-sm mb-3 leading-relaxed">
               You've taken the first step — choosing to pay attention. That's more than most people ever do.

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import useAppStore from '../store/useAppStore'
 import toast from 'react-hot-toast'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
+import Logo from '../components/ui/Logo'
 
 export default function AuthPage() {
   const [mode, setMode] = useState('login') // 'login' | 'signup' | 'forgot'
@@ -72,7 +73,9 @@ export default function AuthPage() {
     <div className="min-h-screen bg-gradient-to-b from-sage-50 to-warm-50 flex flex-col items-center justify-center px-6">
       {/* Logo */}
       <div className="text-center mb-10">
-        <div className="text-6xl mb-3">🌿</div>
+        <div className="flex justify-center mb-3">
+          <Logo size={72} />
+        </div>
         <h1 className="text-3xl font-semibold text-sage-800">Innermark</h1>
         <p className="text-warm-500 mt-1 text-sm">Your daily life check-in</p>
       </div>
