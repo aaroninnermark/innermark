@@ -365,124 +365,96 @@ function CalendarGridView({ topics, allDays, dataMap, topicTotals, startDate, to
   )
 }
 
-// Linear grid: original horizontal scroll view for 7 days
+// 7-day view: one card per topic, 7 dots across full width — no scrolling
 function LinearGridView({ topics, allDays, dataMap, topicTotals, topicIntentions }) {
-  const maxCols = 14
-  const gridDays = allDays.slice(-maxCols)
+  const gridDays = allDays.slice(-7)
   const todayStr = format(new Date(), 'yyyy-MM-dd')
 
   return (
     <div className="space-y-3">
-      <div className="card overflow-hidden p-0">
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="border-b border-warm-100">
-                <th className="text-left p-3 text-warm-400 font-medium sticky left-0 bg-white z-10 min-w-[100px]">Topic</th>
-                {gridDays.map(day => {
-                  const isToday = format(day, 'yyyy-MM-dd') === todayStr
-                  return (
-                    <th key={day.toISOString()} className={`p-1.5 text-center min-w-[2rem] ${isToday ? 'text-sage-600' : 'text-warm-400'} font-medium`}>
-                      <div>{format(day, 'EEE')[0]}</div>
-                      <div className={isToday ? 'font-bold' : ''}>{format(day, 'd')}</div>
-                    </th>
-                  )
-                })}
-                <th className="p-2 text-warm-400 font-medium text-center min-w-[80px] sticky right-0 bg-white z-10">Totals</th>
-              </tr>
-            </thead>
-            <tbody>
-              {topics.map(topic => {
-                const totals = topicTotals[topic.id] || { green: 0, yellow: 0, red: 0, total: 0 }
-                return (
-                  <tr key={topic.id} className="border-b border-warm-50">
-                    <td className="p-3 sticky left-0 bg-white z-10 max-w-[110px]">
-                      <span className="text-xs text-warm-400 uppercase tracking-wide block leading-none mb-0.5">
-                        {topic.emoji} {topic.name}
-                      </span>
-                      {topicIntentions?.[topic.id] ? (
-                        <span className="text-xs font-medium text-warm-700 block truncate">
-                          {topicIntentions[topic.id]}
-                        </span>
-                      ) : null}
-                    </td>
-                    {gridDays.map(day => {
-                      const dateStr = format(day, 'yyyy-MM-dd')
-                      const status = dataMap[dateStr]?.[topic.id]
-                      const isToday = dateStr === todayStr
-                      return (
-                        <td key={day.toISOString()} className="p-1.5 text-center">
-                          <div
-                            className={`w-6 h-6 rounded-full mx-auto transition-all ${isToday ? 'ring-2 ring-sage-400 ring-offset-1' : ''}`}
-                            style={bubbleStyle(status)}
-                            title={status || 'No data'}
-                          />
-                        </td>
-                      )
-                    })}
-                    <td className="p-2 sticky right-0 bg-white z-10">
-                      <div className="flex flex-col gap-0.5 items-center text-xs">
-                        {totals.total > 0 ? (
-                          <>
-                            <span className="text-green-600 font-medium">🟢 {totals.green}</span>
-                            <span className="text-yellow-500 font-medium">🟡 {totals.yellow}</span>
-                            <span className="text-red-500 font-medium">🔴 {totals.red}</span>
-                            <span className="text-warm-300 mt-0.5">{totals.total}d</span>
-                          </>
-                        ) : (
-                          <span className="text-warm-200">—</span>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-        <div className="flex gap-4 p-3 border-t border-warm-100 justify-center">
-          {[['green', 'Good'], ['yellow', 'Neutral'], ['red', 'Hard'], [null, 'No data']].map(([s, label]) => (
-            <div key={label} className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full" style={bubbleStyle(s)} />
-              <span className="text-xs text-warm-400">{label}</span>
+      {/* Day header row */}
+      <div className="grid grid-cols-7 px-1 mb-1">
+        {gridDays.map(day => {
+          const isToday = format(day, 'yyyy-MM-dd') === todayStr
+          return (
+            <div key={day.toISOString()} className="flex flex-col items-center">
+              <span className={`text-xs font-medium ${isToday ? 'text-sage-600' : 'text-warm-400'}`}>
+                {format(day, 'EEE')[0]}
+              </span>
+              <span className={`text-xs ${isToday ? 'text-sage-600 font-bold' : 'text-warm-300'}`}>
+                {format(day, 'd')}
+              </span>
             </div>
-          ))}
-        </div>
+          )
+        })}
       </div>
 
-      {/* Per-topic ratio bars */}
-      {topics.length > 0 && (
-        <div className="card">
-          <h3 className="text-sm font-semibold text-warm-600 mb-3">Overall breakdown</h3>
-          <div className="space-y-3">
-            {topics.map(topic => {
-              const t = topicTotals[topic.id] || { green: 0, yellow: 0, red: 0, total: 0 }
-              if (t.total === 0) return null
-              const gPct = Math.round((t.green / t.total) * 100)
-              const yPct = Math.round((t.yellow / t.total) * 100)
-              const rPct = 100 - gPct - yPct
-              return (
-                <div key={topic.id}>
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex-1 min-w-0 mr-2">
-                      <span className="text-xs text-warm-400 uppercase tracking-wide block">{topic.emoji} {topic.name}</span>
-                      {topicIntentions?.[topic.id] && (
-                        <span className="text-xs font-medium text-warm-700 block truncate">{topicIntentions[topic.id]}</span>
-                      )}
-                    </div>
-                    <span className="text-xs text-warm-400 flex-shrink-0">🟢{t.green} 🟡{t.yellow} 🔴{t.red}</span>
+      {/* One card per topic */}
+      {topics.map(topic => {
+        const totals = topicTotals[topic.id] || { green: 0, yellow: 0, red: 0, total: 0 }
+        const gPct = totals.total > 0 ? Math.round((totals.green / totals.total) * 100) : 0
+        const yPct = totals.total > 0 ? Math.round((totals.yellow / totals.total) * 100) : 0
+        const rPct = totals.total > 0 ? 100 - gPct - yPct : 0
+
+        return (
+          <div key={topic.id} className="card p-0 overflow-hidden">
+            {/* Topic label */}
+            <div className="px-4 pt-3 pb-2">
+              <span className="text-xs text-warm-400 uppercase tracking-wide block">
+                {topic.emoji} {topic.name}
+              </span>
+              {topicIntentions?.[topic.id] && (
+                <span className="text-sm font-medium text-warm-800 block truncate">
+                  {topicIntentions[topic.id]}
+                </span>
+              )}
+            </div>
+
+            {/* 7 dots — full width, equal columns */}
+            <div className="grid grid-cols-7 px-3 pb-3 gap-1">
+              {gridDays.map(day => {
+                const dateStr = format(day, 'yyyy-MM-dd')
+                const status = dataMap[dateStr]?.[topic.id]
+                const isToday = dateStr === todayStr
+                return (
+                  <div key={day.toISOString()} className="flex justify-center">
+                    <div
+                      className={`w-8 h-8 rounded-full transition-all ${isToday ? 'ring-2 ring-sage-400 ring-offset-1' : ''}`}
+                      style={bubbleStyle(status)}
+                      title={status || 'No data'}
+                    />
                   </div>
-                  <div className="flex h-2 rounded-full overflow-hidden">
-                    {gPct > 0 && <div style={{ width: `${gPct}%`, backgroundColor: STATUS_COLOR.green }} />}
-                    {yPct > 0 && <div style={{ width: `${yPct}%`, backgroundColor: STATUS_COLOR.yellow }} />}
-                    {rPct > 0 && <div style={{ width: `${rPct}%`, backgroundColor: STATUS_COLOR.red }} />}
-                  </div>
+                )
+              })}
+            </div>
+
+            {/* Totals + ratio bar */}
+            {totals.total > 0 && (
+              <div className="px-4 pb-3 border-t border-warm-50 pt-2">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs text-warm-400">🟢{totals.green} 🟡{totals.yellow} 🔴{totals.red}</span>
+                  <span className="text-xs text-warm-300">{totals.total} day{totals.total !== 1 ? 's' : ''}</span>
                 </div>
-              )
-            })}
+                <div className="flex h-1.5 rounded-full overflow-hidden">
+                  {gPct > 0 && <div style={{ width: `${gPct}%`, backgroundColor: STATUS_COLOR.green }} />}
+                  {yPct > 0 && <div style={{ width: `${yPct}%`, backgroundColor: STATUS_COLOR.yellow }} />}
+                  {rPct > 0 && <div style={{ width: `${rPct}%`, backgroundColor: STATUS_COLOR.red }} />}
+                </div>
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        )
+      })}
+
+      {/* Legend */}
+      <div className="flex gap-4 justify-center pt-1">
+        {[['green', 'Good'], ['yellow', 'Neutral'], ['red', 'Hard'], [null, 'No data']].map(([s, label]) => (
+          <div key={label} className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-full" style={bubbleStyle(s)} />
+            <span className="text-xs text-warm-400">{label}</span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
