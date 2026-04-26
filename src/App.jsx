@@ -9,7 +9,7 @@ import MainApp from './pages/MainApp'
 import LoadingScreen from './components/ui/LoadingScreen'
 
 export default function App() {
-  const { user, isLoading, onboardingComplete, initAuth, loadHistory } = useAppStore()
+  const { user, isLoading, userReady, onboardingComplete, initAuth, loadHistory } = useAppStore()
 
   useEffect(() => {
     initAuth()
@@ -26,7 +26,8 @@ export default function App() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [user])
 
-  if (isLoading) {
+  // Show loading until fully initialized — prevents premature redirects on refresh
+  if (isLoading || !userReady) {
     return <LoadingScreen />
   }
 

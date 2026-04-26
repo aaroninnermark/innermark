@@ -11,6 +11,7 @@ const useAppStore = create(
       user: null,
       isPremium: false,
       isLoading: true,
+      userReady: false, // true only after full profile + topics loaded
 
       // Topics
       topics: [],
@@ -50,6 +51,7 @@ const useAppStore = create(
             history: MOCK_HISTORY,
             historyLoaded: true,
             isLoading: false,
+            userReady: true,
             onboardingComplete: true,
           })
           return
@@ -59,7 +61,7 @@ const useAppStore = create(
         if (session?.user) {
           await get().loadUserData(session.user)
         } else {
-          set({ isLoading: false })
+          set({ isLoading: false, userReady: true })
         }
 
         supabase.auth.onAuthStateChange(async (event, session) => {
@@ -74,6 +76,7 @@ const useAppStore = create(
               historyLoaded: false,
               onboardingComplete: false,
               isLoading: false,
+              userReady: true,
             })
           }
         })
@@ -196,6 +199,7 @@ const useAppStore = create(
             checkInSubmitted: !!todayCheckin,
             onboardingComplete,
             isLoading: false,
+            userReady: true,
           })
 
           // Load history and intentions in background
@@ -204,7 +208,7 @@ const useAppStore = create(
 
         } catch (err) {
           console.error('Error loading user data:', err)
-          set({ isLoading: false })
+          set({ isLoading: false, userReady: true })
         }
       },
 
