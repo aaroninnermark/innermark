@@ -117,31 +117,46 @@ const BOOKS = [
 
 const MUSIC = [
   {
-    state: '🌧️ For difficult days',
-    desc: 'When things feel heavy, stuck, or hard',
+    state: '✨ Ceremony & Sacred Space',
+    desc: 'For plant medicine, ritual, and deep inner work',
     links: [
-      { title: 'Add a playlist', url: '#', note: 'Coming soon — curated for hard moments' },
+      { title: 'Mushroom Ceremony A', url: 'https://open.spotify.com/playlist/7jjrybq4nZTWM0vObEUF3h?si=KtbdRXhvSmG25MI27W4QMg', note: 'Curated for psilocybin ceremony — expansive and intentional' },
+      { title: 'Mushroom Ceremony B', url: 'https://open.spotify.com/playlist/42KSp0BZpms4HqaDm0eTfa?si=csZ143DyT3Cf7DqaZ3kagQ', note: 'Second ceremony playlist — a different arc and energy' },
+      { title: 'Shamanic', url: 'https://open.spotify.com/album/4SbBdmNcCrE9q0jxPVrU6M?si=gpbDpT_xTK-678N8CoKoFQ', note: 'Drums, rattles, and earth tones for shamanic journeywork' },
+      { title: 'Shamanic Playlist', url: 'https://open.spotify.com/playlist/1u4GtjIqH0vT25ztlF7kB4?si=qxR7QmpCSBeSM0VY6X5QxA', note: 'Extended shamanic collection for longer sessions' },
+      { title: 'Pachamama', url: 'https://open.spotify.com/playlist/3nwZWJMA2rkbmJqWTKP8CC?si=iKuj6m-sRzSBL1ZOX0s6xA', note: 'Earth medicine vibes — grounded, devotional, alive' },
+      { title: 'Chanting Mantras', url: 'https://open.spotify.com/playlist/6pHeoDEONYwAWgWDxC4ree?si=3o3AJFP1S-y8g9S9R7vuRA', note: 'Sacred mantras for opening the heart and steadying the mind' },
+      { title: 'Duduk Meditation', url: 'https://open.spotify.com/album/7akUjc2IEfNeWPeZOeHtil?si=qbahQN0hR3GY7fg2SBjD5w', note: 'Armenian duduk — hauntingly beautiful for deep inner states' },
     ]
   },
   {
-    state: '🌱 For grounding',
-    desc: 'Return to the present, settle the nervous system',
+    state: '🌱 Meditation & Breathwork',
+    desc: 'Stillness, presence, and nervous system regulation',
     links: [
-      { title: 'Add a playlist', url: '#', note: 'Coming soon — earth tones and stillness' },
+      { title: 'Meditation', url: 'https://open.spotify.com/playlist/37i9dQZF1DWZqd5JICZI0u?si=MvgWf9CHSA-2YZZOJr8C6A', note: 'Spotify\'s curated meditation collection — calm and spacious' },
+      { title: 'Breathwork', url: 'https://open.spotify.com/playlist/2gHyzx64o35vxhAPW3ioom?si=X20FqUxHSTW1weMjgR0PBg', note: 'Built for breathwork sessions — rhythmic and supportive' },
+      { title: 'Piano', url: 'https://open.spotify.com/album/7dP1xv0rBw9sAKvcAlL1X8?si=3gG8HWlfRFmxKDoqTCFJgw', note: 'Solo piano — simple, unadorned, deeply settling' },
+      { title: 'Relaxing Ragas', url: 'https://open.spotify.com/playlist/37i9dQZF1DX0TD2wVgaeIq?si=BwD614IGSUOfoThu9joKww', note: 'Indian classical ragas for deep relaxation and meditation' },
+      { title: 'Slowdown Psychedelic', url: 'https://open.spotify.com/playlist/0yvEXSkoEeIi5oh5a1Ibkz?si=M1e0LMoXSYWheHXtUf28NQ', note: 'Slow, psychedelic textures for coming down and integrating' },
     ]
   },
   {
-    state: '✨ For intentional states',
-    desc: 'Ceremony, meditation, deep inner work',
+    state: '🔥 Focus & Flow',
+    desc: 'For journaling, reflection, and getting into the zone',
     links: [
-      { title: 'Add a playlist', url: '#', note: 'Coming soon — music for altered and sacred states' },
+      { title: 'Focus', url: 'https://open.spotify.com/playlist/6qwcOZ2T8TYtexPqaMPpWp?si=Jb7Bvx-yRu2j7oGtqdzMlQ', note: 'Deep focus music — minimal and undistracting' },
+      { title: 'Lofi', url: 'https://open.spotify.com/playlist/0AIovh0Qq1sUP7YfhxTDhw?si=fv2ikmU0RN-U0qVQt53kKg', note: 'Lo-fi beats for calm productivity and reflection' },
+      { title: 'Downtempo', url: 'https://open.spotify.com/playlist/0EedULhw6qjt7m6PD0Zsjb?si=A-_RYYdLSBqvz0NJIvPGSQ', note: 'Slow, textured electronic — good for writing and inner work' },
     ]
   },
   {
-    state: '☀️ For celebrating good days',
-    desc: 'When things are flowing and you want to ride it',
+    state: '☀️ Uplift & Joy',
+    desc: 'For good days, movement, and feeling alive',
     links: [
-      { title: 'Add a playlist', url: '#', note: 'Coming soon — uplift and joy' },
+      { title: 'Love is the Cure', url: 'https://open.spotify.com/playlist/37i9dQZF1E8L8gb3MhErDU?si=TMHHKg40SluYlnfBnWLLJw', note: 'Warm, soulful, heart-opening — music as medicine for good days' },
+      { title: 'Tulum Vibes', url: 'https://open.spotify.com/playlist/37i9dQZF1DX9pP7cC2liKw?si=IpZ21RPMSaKiwa9FWq76ag', note: 'Organic house and world sounds — for when you want to move' },
+      { title: 'Jazzy Mornings', url: 'https://open.spotify.com/playlist/3TYK9AfW5m6ZzkredxA4Uf?si=N9nlssP2So6VgHUoT1Iu5w', note: 'Easy jazz for a slow, intentional morning' },
+      { title: 'Gypsy / Flamenco', url: 'https://open.spotify.com/playlist/4ntPIpr4t7NzcfRKAwbvAd?si=EnSySWlkTvmwgayNzquxEw', note: 'Passionate, alive, earthy — gypsy jazz and flamenco fire' },
     ]
   },
 ]
@@ -212,28 +227,36 @@ export default function SupportPage() {
 
       {/* MUSIC */}
       {activeTab === 'music' && (
-        <div className="animate-fade-in space-y-5">
-          <p className="text-xs text-warm-400 mb-2">Music organized by how you're feeling.</p>
+        <div className="animate-fade-in space-y-6">
+          <p className="text-xs text-warm-400 leading-relaxed">
+            Music organized by state of being. Tap any title to open in Spotify.
+          </p>
           {MUSIC.map((category, i) => (
             <div key={i}>
-              <div className="flex items-center gap-2 mb-3">
-                <div>
-                  <h3 className="text-sm font-semibold text-warm-700">{category.state}</h3>
-                  <p className="text-xs text-warm-400">{category.desc}</p>
-                </div>
+              <div className="mb-3">
+                <h3 className="text-sm font-semibold text-warm-700">{category.state}</h3>
+                <p className="text-xs text-warm-400">{category.desc}</p>
               </div>
               <div className="space-y-2">
                 {category.links.map((link, j) => (
-                  <div key={j} className="card border-dashed text-center py-4 text-warm-300">
-                    <p className="text-xs">{link.note}</p>
-                  </div>
+                  <a
+                    key={j}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="card flex items-center gap-3 hover:border-sage-200 transition-all no-underline active:scale-[0.99] block"
+                  >
+                    <span className="text-2xl flex-shrink-0">🎵</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-warm-800">{link.title}</p>
+                      <p className="text-xs text-warm-400 leading-relaxed">{link.note}</p>
+                    </div>
+                    <span className="text-warm-300 text-sm flex-shrink-0">↗</span>
+                  </a>
                 ))}
               </div>
             </div>
           ))}
-          <div className="card bg-sage-50 border-sage-100">
-            <p className="text-xs text-sage-600">🎵 Playlists coming soon — curated for each state of being.</p>
-          </div>
         </div>
       )}
 
