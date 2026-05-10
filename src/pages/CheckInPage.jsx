@@ -41,12 +41,7 @@ export default function CheckInPage() {
   const totalCount = topics.length
   const progressPct = totalCount > 0 ? (enteredCount / totalCount) * 100 : 0
 
-  // Check if today is already done
-  useEffect(() => {
-    if (checkInSubmitted && todayCheckin) {
-      setShowInsight(false) // Only show insight right after submit
-    }
-  }, [checkInSubmitted])
+  // No auto-clearing of insight — user dismisses it manually via the button
 
   async function handleSubmit() {
     if (enteredCount === 0) {
