@@ -1,17 +1,20 @@
 import { useState } from 'react'
 import useAppStore from '../../store/useAppStore'
+import { supabase, isSupabaseConfigured } from '../../lib/supabase'
 import toast from 'react-hot-toast'
 
 const EMOJI_OPTIONS = ['⭐', '💛', '💼', '🌿', '🧠', '💰', '👨‍👩‍👧', '🎨', '✨', '🤝', '🎉', '🏃', '📚', '🌙', '🔥']
 
 export default function TopicsManager() {
-  const { topics, isPremium, addTopic, updateTopic, archiveTopic, reorderTopics } = useAppStore()
+  const { topics, isPremium, user, addTopic, updateTopic, archiveTopic, reorderTopics, setTopicIntentionLocal, topicIntentions } = useAppStore()
   const [newTopicName, setNewTopicName] = useState('')
   const [newTopicEmoji, setNewTopicEmoji] = useState('⭐')
   const [editingId, setEditingId] = useState(null)
   const [editName, setEditName] = useState('')
   const [loading, setLoading] = useState(false)
   const [dragging, setDragging] = useState(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null)
+  const [newlyAddedTopic, setNewlyAddedTopic] = useState(null) // prompt for intention
 
   const limit = isPremium ? 25 : 8
   const canAdd = topics.length < limit
@@ -24,15 +27,32 @@ export default function TopicsManager() {
     }
     setLoading(true)
     try {
-      await addTopic(newTopicName.trim(), newTopicEmoji)
+      const created = await addTopic(newTopicName.trim(), newTopicEmoji)
       setNewTopicName('')
       setNewTopicEmoji('⭐')
-      toast.success('Topic added!')
+      // Prompt user to set intention for the new topic
+      if (created?.id) setNewlyAddedTopic(created)
     } catch (err) {
       toast.error(err.message)
     } finally {
       setLoading(false)
     }
+  }
+
+  async function saveNewIntention(topicId, text) {
+    if (!text.trim()) { setNewlyAddedTopic(null); return }
+    setTopicIntentionLocal(topicId, text.trim())
+    setNewlyAddedTopic(null)
+    if (isSupabaseConfigured && user) {
+      await supabase.from('intentions').upsert({
+        user_id: user.id,
+        topic_id: topicId,
+        type: 'topic',
+        text: text.trim(),
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id,topic_id,type' })
+    }
+    toast.success('Topic + intention saved!')
   }
 
   async function handleRename(id) {
@@ -47,10 +67,14 @@ export default function TopicsManager() {
   }
 
   async function handleArchive(id) {
-    if (!confirm('Archive this topic? It won\'t appear in check-ins.')) return
+    setConfirmDeleteId(id)
+  }
+
+  async function confirmDelete(id) {
     try {
       await archiveTopic(id)
-      toast.success('Topic archived')
+      toast.success('Topic removed')
+      setConfirmDeleteId(null)
     } catch (err) {
       toast.error(err.message)
     }
@@ -120,13 +144,20 @@ export default function TopicsManager() {
               >
                 ✏️ <span className="hidden sm:inline">Rename</span>
               </button>
-              <button
-                onClick={() => handleArchive(topic.id)}
-                className="flex items-center gap-1 text-xs text-warm-400 hover:text-red-500 bg-warm-50 hover:bg-red-50 px-2 py-1 rounded-lg transition-all"
-                title="Delete"
-              >
-                🗑️ <span className="hidden sm:inline">Delete</span>
-              </button>
+              {confirmDeleteId === topic.id ? (
+                <div className="flex gap-1">
+                  <button onClick={() => setConfirmDeleteId(null)} className="text-xs text-warm-400 bg-warm-100 px-2 py-1 rounded-lg">Cancel</button>
+                  <button onClick={() => confirmDelete(topic.id)} className="text-xs text-white bg-red-500 px-2 py-1 rounded-lg font-medium">Delete</button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => handleArchive(topic.id)}
+                  className="flex items-center gap-1 text-xs text-warm-400 hover:text-red-500 bg-warm-50 hover:bg-red-50 px-2 py-1 rounded-lg transition-all"
+                  title="Delete"
+                >
+                  🗑️ <span className="hidden sm:inline">Delete</span>
+                </button>
+              )}
             </div>
           </div>
         ))}
@@ -182,6 +213,42 @@ export default function TopicsManager() {
             {isPremium ? 'Maximum 25 topics reached' : '✨ Upgrade to Premium to add up to 25 topics'}
           </p>
         )}
+      </div>
+
+      {/* Intention prompt for newly added topic */}
+      {newlyAddedTopic && (
+        <IntentionPrompt
+          topic={newlyAddedTopic}
+          onSave={(text) => saveNewIntention(newlyAddedTopic.id, text)}
+          onSkip={() => setNewlyAddedTopic(null)}
+        />
+      )}
+    </div>
+  )
+}
+
+function IntentionPrompt({ topic, onSave, onSkip }) {
+  const [value, setValue] = useState('')
+  return (
+    <div className="mt-4 rounded-2xl border-2 border-sage-300 bg-sage-50 p-4 animate-fade-in">
+      <p className="text-sm font-semibold text-sage-700 mb-1">
+        {topic.emoji} {topic.name} — set your intention
+      </p>
+      <p className="text-xs text-warm-400 mb-3">
+        What does a good day in this area look like to you?
+      </p>
+      <input
+        type="text"
+        value={value}
+        onChange={e => setValue(e.target.value)}
+        placeholder={`A good day in ${topic.name.toLowerCase()} feels like...`}
+        className="input-field text-sm w-full mb-3"
+        maxLength={120}
+        autoFocus
+      />
+      <div className="flex gap-2">
+        <button onClick={onSkip} className="btn-ghost text-xs flex-1">Skip for now</button>
+        <button onClick={() => onSave(value)} className="btn-primary text-xs flex-1">Save intention</button>
       </div>
     </div>
   )

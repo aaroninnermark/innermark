@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { format } from 'date-fns'
+import { useState, useEffect, useMemo } from 'react'
+import { format, subDays } from 'date-fns'
 import useAppStore from '../store/useAppStore'
 import { getInsightMessage, getCoachingPromptTopics } from '../lib/insights'
 import { fireConfetti } from '../lib/confetti'
@@ -96,6 +96,30 @@ export default function CheckInPage() {
     )
   }
 
+  // Streak calculation
+  const streak = useMemo(() => {
+    let count = 0
+    for (let i = 1; i <= 365; i++) {
+      const date = format(subDays(new Date(), i), 'yyyy-MM-dd')
+      const entry = history.find(h => h.date === date)
+      if (entry && entry.topic_entries?.length > 0) count++
+      else break
+    }
+    return count
+  }, [history])
+
+  // Missed yesterday?
+  const missedYesterday = useMemo(() => {
+    const yesterday = format(subDays(new Date(), 1), 'yyyy-MM-dd')
+    return !history.find(h => h.date === yesterday)
+  }, [history])
+
+  // All green today?
+  const allGreenToday = useMemo(() => {
+    if (!todayCheckin?.topic_entries?.length) return false
+    return todayCheckin.topic_entries.every(e => e.status === 'green')
+  }, [todayCheckin])
+
   // Already checked in today
   if (checkInSubmitted && todayCheckin) {
     return (
@@ -105,9 +129,31 @@ export default function CheckInPage() {
           onSettings={() => setShowSettings(true)}
         />
 
+        {/* Missed yesterday nudge */}
+        {missedYesterday && streak === 0 && (
+          <div className="card bg-amber-50 border-amber-100 mb-4 flex items-start gap-3">
+            <span className="text-xl">🌱</span>
+            <div>
+              <p className="text-sm font-medium text-amber-800">Fresh start today</p>
+              <p className="text-xs text-amber-600 mt-0.5">You missed yesterday — and that's okay. Consistency isn't perfection. You're here now.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Streak celebration */}
+        {streak >= 3 && (
+          <div className="card bg-sage-50 border-sage-200 mb-4 flex items-center gap-3">
+            <span className="text-2xl">🔥</span>
+            <div>
+              <p className="text-sm font-semibold text-sage-800">{streak} day streak</p>
+              <p className="text-xs text-sage-600">Keep going. Small consistency over time is how real change happens.</p>
+            </div>
+          </div>
+        )}
+
         <div className="card mb-4 text-center py-6">
-          <div className="text-4xl mb-2">✅</div>
-          <h2 className="text-lg font-semibold text-sage-800 mb-1">Today's done!</h2>
+          <div className="text-4xl mb-2">{allGreenToday ? '🌿' : '✅'}</div>
+          <h2 className="text-lg font-semibold text-sage-800 mb-1">{allGreenToday ? 'All green today!' : "Today's done!"}</h2>
           <p className="text-warm-500 text-sm">
             You checked in at{' '}
             {format(new Date(todayCheckin.created_at || new Date()), 'h:mm a')}
@@ -166,6 +212,36 @@ export default function CheckInPage() {
             </button>
           ))}
         </div>
+
+        {/* Share card — appears on all-green or streak milestones */}
+        {(allGreenToday || streak >= 7) && (
+          <div className="card bg-sage-50 border-sage-200 mb-3 text-center py-4">
+            <p className="text-sm font-semibold text-sage-800 mb-1">
+              {allGreenToday && streak >= 7 ? `🌿 ${streak} days strong — all green today` :
+               allGreenToday ? '🌿 All green day' :
+               `🔥 ${streak} day streak`}
+            </p>
+            <p className="text-xs text-sage-600 mb-3">Share this moment</p>
+            <button
+              onClick={() => {
+                const text = allGreenToday && streak >= 7
+                  ? `${streak} days of showing up for myself with @Innermark 🌿`
+                  : allGreenToday
+                  ? `All green day on Innermark — checking in on what matters 🌿`
+                  : `${streak} day check-in streak on Innermark 🔥`
+                if (navigator.share) {
+                  navigator.share({ text, url: 'https://getinnermark.com' })
+                } else {
+                  navigator.clipboard.writeText(text + ' getinnermark.com')
+                  toast.success('Copied to clipboard!')
+                }
+              }}
+              className="text-xs text-sage-600 border border-sage-300 rounded-xl px-4 py-2 hover:bg-sage-100 transition-all"
+            >
+              📤 Share
+            </button>
+          </div>
+        )}
 
         <button
           onClick={() => resetTodayCheckin()}

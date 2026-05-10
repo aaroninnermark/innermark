@@ -276,7 +276,7 @@ export default function SupportPage() {
               Sometimes what you're seeing in your check-ins deserves more than a reflection. A session creates space to go deeper — to make sense of patterns, work through what's stuck, and find your next step.
             </p>
             <a
-              href="https://placeholder-coaching-url.com"
+              href="https://aarontritt.com"
               target="_blank"
               rel="noopener noreferrer"
               className="btn-primary inline-block"

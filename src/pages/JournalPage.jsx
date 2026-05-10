@@ -123,28 +123,17 @@ export default function JournalPage() {
           <p className="text-xs font-semibold text-sage-700 mb-1">✏️ New Journal Entry</p>
           <p className="text-xs text-warm-400 mb-3">{today}</p>
 
-          {/* Topic selector */}
-          <div className="flex gap-2 mb-3 flex-wrap">
-            <button
-              onClick={() => setNewEntryTopic('day')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
-                newEntryTopic === 'day' ? 'bg-sage-600 text-white' : 'bg-warm-100 text-warm-600'
-              }`}
-            >
-              📅 General
-            </button>
+          {/* Topic selector — dropdown for clean mobile layout */}
+          <select
+            value={newEntryTopic}
+            onChange={e => setNewEntryTopic(e.target.value)}
+            className="w-full bg-warm-100 text-warm-700 rounded-xl px-3 py-2 text-sm font-medium border-none outline-none mb-3"
+          >
+            <option value="day">📅 General note</option>
             {topics.map(t => (
-              <button
-                key={t.id}
-                onClick={() => setNewEntryTopic(t.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
-                  newEntryTopic === t.id ? 'bg-sage-600 text-white' : 'bg-warm-100 text-warm-600'
-                }`}
-              >
-                {t.emoji} {t.name}
-              </button>
+              <option key={t.id} value={t.id}>{t.emoji} {t.name}</option>
             ))}
-          </div>
+          </select>
 
           <textarea
             value={newEntryText}
