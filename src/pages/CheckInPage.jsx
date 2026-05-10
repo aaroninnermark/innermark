@@ -80,19 +80,7 @@ export default function CheckInPage() {
     }
   }
 
-  // Insight screen
-  if (showInsight) {
-    return (
-      <InsightScreen
-        message={insightMessage}
-        coachingTopicIds={coachingTopics}
-        topics={topics}
-        onDone={() => setShowInsight(false)}
-      />
-    )
-  }
-
-  // Streak calculation
+  // ALL hooks must be before any conditional returns
   const streak = useMemo(() => {
     let count = 0
     for (let i = 1; i <= 365; i++) {
@@ -104,20 +92,30 @@ export default function CheckInPage() {
     return count
   }, [history])
 
-  // Missed yesterday?
   const missedYesterday = useMemo(() => {
     const yesterday = format(subDays(new Date(), 1), 'yyyy-MM-dd')
     return !history.find(h => h.date === yesterday)
   }, [history])
 
-  // All green today?
   const allGreenToday = useMemo(() => {
     if (!todayCheckin?.topic_entries?.length) return false
     return todayCheckin.topic_entries.every(e => e.status === 'green')
   }, [todayCheckin])
 
-  // Already checked in today — only show if insight screen is dismissed
-  if (checkInSubmitted && todayCheckin && !showInsight) {
+  // Insight screen — shown immediately after submit
+  if (showInsight) {
+    return (
+      <InsightScreen
+        message={insightMessage}
+        coachingTopicIds={coachingTopics}
+        topics={topics}
+        onDone={() => setShowInsight(false)}
+      />
+    )
+  }
+
+  // Already checked in today
+  if (checkInSubmitted && todayCheckin) {
     return (
       <div className="page-container animate-fade-in">
         <PageHeader
