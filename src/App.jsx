@@ -38,8 +38,7 @@ export default function App() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [user])
 
-  // Only show loading screen on first cold load — not on tab switch
-  if ((isLoading || !userReady) && !user) {
+  if (isLoading || !userReady) {
     return <LoadingScreen />
   }
 

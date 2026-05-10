@@ -56,21 +56,6 @@ const useAppStore = create(
           return
         }
 
-        // If we already have user data in memory (tab switch), don't show loading screen —
-        // just silently re-validate the session in the background
-        const currentUser = get().user
-        if (currentUser) {
-          set({ isLoading: false, userReady: true })
-          // Silently refresh session in background
-          supabase.auth.getSession().then(({ data: { session } }) => {
-            if (!session) {
-              // Session expired — sign out
-              get().signOut()
-            }
-          })
-          return
-        }
-
         const { data: { session } } = await supabase.auth.getSession()
         if (session?.user) {
           await get().loadUserData(session.user)
@@ -570,10 +555,6 @@ const useAppStore = create(
         celebrationStyle: state.celebrationStyle,
         iconStyle: state.iconStyle,
         activeTab: state.activeTab,
-        // Persist user identity so tab switches don't show loading screen
-        user: state.user,
-        onboardingComplete: state.onboardingComplete,
-        isPremium: state.isPremium,
       }),
     }
   )
