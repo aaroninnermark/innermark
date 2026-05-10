@@ -49,7 +49,7 @@ const TOPIC_GROUPS = [
   },
 ]
 
-const STEPS = ['welcome', 'reflect', 'topics', 'intentions', 'reminder', 'done']
+const STEPS = ['welcome', 'thriving', 'change', 'topics', 'intentions', 'reminder', 'done']
 
 export default function OnboardingPage() {
   const [step, setStep] = useState(0)
@@ -231,21 +231,59 @@ export default function OnboardingPage() {
         )}
 
         {/* SCREEN 2 — REFLECT */}
-        {currentStep === 'reflect' && (
+        {/* SCREEN 2 — WHERE YOU'RE THRIVING */}
+        {currentStep === 'thriving' && (
           <div className="w-full animate-fade-in">
             <div className="text-center mb-6">
-              <div className="text-4xl mb-3">🪞</div>
-              <h2 className="text-2xl font-semibold text-sage-800 mb-3">Before you choose</h2>
+              <div className="text-4xl mb-3">✨</div>
+              <h2 className="text-2xl font-semibold text-sage-800 mb-3">Where you're thriving</h2>
               <p className="text-warm-600 text-sm leading-relaxed">
-                Think about the last week of your life. Sit with these questions — you don't need to answer them out loud, just let them land.
+                Think about the last week. Before anything else, let yourself acknowledge what's already working.
               </p>
             </div>
             <div className="space-y-3 mb-6">
               {[
-                { q: 'What areas felt alive or energized?', icon: '✨' },
-                { q: 'What felt heavy, stuck, or hard?', icon: '🌧️' },
-                { q: 'What have you been ignoring?', icon: '👀' },
-                { q: 'What do you most want to grow — or heal?', icon: '🌱' },
+                { q: 'What areas of your life felt genuinely good?', icon: '🌟' },
+                { q: 'Where did you show up the way you wanted to?', icon: '💪' },
+                { q: 'What are you proud of, even if only a little?', icon: '🙌' },
+                { q: 'What feels like it\'s working, even quietly?', icon: '🌿' },
+              ].map(item => (
+                <div key={item.q} className="flex gap-3 bg-white rounded-2xl p-4 border border-warm-100 shadow-sm">
+                  <span className="text-xl mt-0.5">{item.icon}</span>
+                  <p className="text-warm-700 text-sm leading-relaxed">{item.q}</p>
+                </div>
+              ))}
+            </div>
+            <div className="bg-sage-50 rounded-2xl p-4 border border-sage-100 mb-6">
+              <p className="text-xs text-sage-700 leading-relaxed italic">
+                "What you appreciate, appreciates."
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setStep(0)} className="btn-ghost">Back</button>
+              <button onClick={() => setStep(2)} className="btn-primary flex-1">
+                Continue →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* SCREEN 3 — WHERE YOU WANT CHANGE */}
+        {currentStep === 'change' && (
+          <div className="w-full animate-fade-in">
+            <div className="text-center mb-6">
+              <div className="text-4xl mb-3">🌱</div>
+              <h2 className="text-2xl font-semibold text-sage-800 mb-3">Where you want change</h2>
+              <p className="text-warm-600 text-sm leading-relaxed">
+                Now shift your attention. Where do you feel stuck, heavy, or like something needs to be different?
+              </p>
+            </div>
+            <div className="space-y-3 mb-6">
+              {[
+                { q: 'What areas felt hard, draining, or stuck?', icon: '🌧️' },
+                { q: 'What have you been avoiding or ignoring?', icon: '👀' },
+                { q: 'Where do you feel like you\'re falling short of who you want to be?', icon: '🔥' },
+                { q: 'What do you most want to grow or heal?', icon: '🩹' },
               ].map(item => (
                 <div key={item.q} className="flex gap-3 bg-white rounded-2xl p-4 border border-warm-100 shadow-sm">
                   <span className="text-xl mt-0.5">{item.icon}</span>
@@ -259,12 +297,12 @@ export default function OnboardingPage() {
               </p>
             </div>
             <p className="text-center text-xs text-warm-400 mb-6">
-              Let your answers guide which areas you choose to track.
+              Let both sets of answers guide which areas you choose to track.
             </p>
             <div className="flex gap-3">
-              <button onClick={() => setStep(0)} className="btn-ghost">Back</button>
-              <button onClick={() => setStep(2)} className="btn-primary flex-1">
-                Choose My Topics →
+              <button onClick={() => setStep(1)} className="btn-ghost">Back</button>
+              <button onClick={() => setStep(3)} className="btn-primary flex-1">
+                Choose My Areas →
               </button>
             </div>
           </div>
@@ -378,9 +416,9 @@ export default function OnboardingPage() {
             </div>
 
             <div className="flex gap-3">
-              <button onClick={() => setStep(1)} className="btn-ghost">Back</button>
+              <button onClick={() => setStep(2)} className="btn-ghost">Back</button>
               <button
-                onClick={() => selectedTopics.length > 0 && setStep(3)}
+                onClick={() => selectedTopics.length > 0 && setStep(4)}
                 disabled={selectedTopics.length === 0}
                 className="btn-primary flex-1 disabled:opacity-40"
               >
@@ -427,13 +465,13 @@ export default function OnboardingPage() {
             </p>
 
             <div className="flex gap-3">
-              <button onClick={() => setStep(2)} className="btn-ghost">Back</button>
-              <button onClick={() => setStep(4)} className="btn-primary flex-1">
+              <button onClick={() => setStep(4)} className="btn-ghost">Back</button>
+              <button onClick={() => setStep(6)} className="btn-primary flex-1">
                 Continue →
               </button>
             </div>
             <button
-              onClick={() => setStep(4)}
+              onClick={() => setStep(6)}
               className="btn-ghost w-full mt-2 text-sm text-warm-400"
             >
               Skip for now

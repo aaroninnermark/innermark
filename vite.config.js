@@ -7,6 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      selfDestroying: true, // removes any previously registered SW to fix tab-switch navigation
       includeAssets: ['favicon.ico', 'icons/*.png'],
       manifest: {
         name: 'Innermark',
