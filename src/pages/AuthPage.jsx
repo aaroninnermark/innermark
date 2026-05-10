@@ -70,7 +70,7 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sage-50 to-warm-50 flex flex-col items-center justify-center px-6">
+    <div className="min-h-screen flex flex-col items-center justify-center px-6" style={{ background: 'linear-gradient(180deg, #faf9f6 0%, #f0f5f0 60%, #e8f0e8 100%)' }}>
       {/* Logo */}
       <div className="text-center mb-10">
         <div className="flex justify-center mb-3">

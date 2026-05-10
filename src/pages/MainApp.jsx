@@ -5,7 +5,7 @@ import CheckInPage from './CheckInPage'
 import TrendsPage from './TrendsPage'
 import JournalPage from './JournalPage'
 import SupportPage from './SupportPage'
-import Logo, { LogoWatermark } from '../components/ui/Logo'
+import Logo from '../components/ui/Logo'
 
 const TABS = [
   { id: 'checkin', path: '/', label: 'Check In', icon: null, isLogo: true },
@@ -44,10 +44,7 @@ export default function MainApp() {
   }
 
   return (
-    <div className="min-h-screen bg-warm-50 relative">
-      {/* Subtle logo watermark on every page */}
-      <LogoWatermark />
-
+    <div className="min-h-screen relative">
       <div className="relative z-10">
         <Routes>
           <Route path="/" element={<CheckInPage />} />

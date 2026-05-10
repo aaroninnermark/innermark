@@ -9,7 +9,9 @@
   }
   
   body {
-    @apply bg-warm-50 text-warm-900 font-sans;
+    background: linear-gradient(180deg, #faf9f6 0%, #f0f5f0 60%, #e8f0e8 100%);
+    min-height: 100vh;
+    @apply text-warm-900 font-sans;
     overscroll-behavior: none;
   }
 

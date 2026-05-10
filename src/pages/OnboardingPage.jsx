@@ -163,7 +163,7 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sage-50 to-warm-50 flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(180deg, #faf9f6 0%, #f0f5f0 60%, #e8f0e8 100%)' }}>
       {/* Top bar with escape hatch */}
       <div className="flex items-center justify-between px-6 pt-6 pb-0">
         <button
