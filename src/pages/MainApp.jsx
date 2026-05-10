@@ -20,17 +20,11 @@ export default function MainApp() {
 
   const activeTab = TABS.find(t => t.path === location.pathname)?.id || 'checkin'
 
-  // Restore last visited tab on mount
+  // Save current tab to localStorage whenever it changes (survives tab switch)
   useEffect(() => {
-    const savedPath = sessionStorage.getItem('innermark_last_path')
-    if (savedPath && savedPath !== '/' && location.pathname === '/') {
-      navigate(savedPath, { replace: true })
+    if (location.pathname !== '/') {
+      localStorage.setItem('innermark_last_path', location.pathname)
     }
-  }, [])
-
-  // Save current tab to sessionStorage whenever it changes
-  useEffect(() => {
-    sessionStorage.setItem('innermark_last_path', location.pathname)
   }, [location.pathname])
 
   // Listen for navigation events from child components

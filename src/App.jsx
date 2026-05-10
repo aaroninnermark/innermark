@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import useAppStore from './store/useAppStore'
 
 // Pages
@@ -10,12 +10,24 @@ import LoadingScreen from './components/ui/LoadingScreen'
 
 export default function App() {
   const { user, isLoading, userReady, onboardingComplete, initAuth, loadHistory } = useAppStore()
+  const navigate = useNavigate()
+  const location = useLocation()
 
   useEffect(() => {
     initAuth()
   }, [])
 
-  // When tab becomes visible again, refresh data silently — don't navigate
+  // After auth + profile fully loaded, restore last path if we're sitting at root
+  useEffect(() => {
+    if (!userReady || !user || !onboardingComplete) return
+    const saved = localStorage.getItem('innermark_last_path')
+    const validPaths = ['/trends', '/journal', '/support']
+    if (saved && validPaths.includes(saved) && location.pathname === '/') {
+      navigate(saved, { replace: true })
+    }
+  }, [userReady, user, onboardingComplete])
+
+  // When tab becomes visible again, refresh data silently
   useEffect(() => {
     function handleVisibilityChange() {
       if (document.visibilityState === 'visible' && user) {
@@ -26,7 +38,7 @@ export default function App() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [user])
 
-  // Show loading until fully initialized — prevents premature redirects on refresh
+  // Show loading until fully initialized
   if (isLoading || !userReady) {
     return <LoadingScreen />
   }
