@@ -46,6 +46,7 @@ export default function TrendsPage() {
   const { topics, history, isPremium, historyLoaded, topicIntentions } = useAppStore()
   const [selectedRange, setSelectedRange] = useState('7')
   const [viewMode, setViewMode] = useState('grid')
+  const [selectedTopic, setSelectedTopic] = useState(null) // null = overall, topicId = per-topic
   const [showPremiumPrompt, setShowPremiumPrompt] = useState(false)
 
   const range = RANGES.find(r => r.id === selectedRange)
@@ -109,18 +110,28 @@ export default function TrendsPage() {
     return currentStreak
   }, [dataMap])
 
+  // Overall chart data
   const chartData = useMemo(() => {
     return allDays.map(day => {
       const dateStr = format(day, 'yyyy-MM-dd')
       const dayData = dataMap[dateStr] || {}
-      const statuses = Object.values(dayData).filter(Boolean)
       const isToday = dateStr === format(new Date(), 'yyyy-MM-dd')
-      if (statuses.length === 0) return { date: format(day, 'M/d'), score: null, dateStr, isToday }
-      const greenCount = statuses.filter(s => s === 'green').length
-      const score = Math.round((greenCount / statuses.length) * 100)
-      return { date: format(day, 'M/d'), score, dateStr, isToday }
+
+      if (selectedTopic) {
+        // Per-topic: show status as score (green=100, yellow=50, red=0)
+        const status = dayData[selectedTopic]
+        const score = status === 'green' ? 100 : status === 'yellow' ? 50 : status === 'red' ? 0 : null
+        return { date: format(day, 'M/d'), score, dateStr, isToday, status }
+      } else {
+        // Overall: % green across all topics
+        const statuses = Object.values(dayData).filter(Boolean)
+        if (statuses.length === 0) return { date: format(day, 'M/d'), score: null, dateStr, isToday }
+        const greenCount = statuses.filter(s => s === 'green').length
+        const score = Math.round((greenCount / statuses.length) * 100)
+        return { date: format(day, 'M/d'), score, dateStr, isToday }
+      }
     })
-  }, [allDays, dataMap])
+  }, [allDays, dataMap, selectedTopic])
 
   function handleRangeSelect(r) {
     if (r.premium && !isPremium) {
@@ -215,7 +226,30 @@ export default function TrendsPage() {
           />
         )
       ) : (
-        <ChartView chartData={chartData} />
+        <>
+          {/* Topic selector for chart view */}
+          <div className="mb-4">
+            <select
+              value={selectedTopic || ''}
+              onChange={e => setSelectedTopic(e.target.value || null)}
+              className="w-full bg-warm-100 text-warm-700 rounded-xl px-3 py-2 text-sm font-medium border-none outline-none"
+            >
+              <option value="">📊 Overall wellbeing</option>
+              {topics.map(t => (
+                <option key={t.id} value={t.id}>
+                  {t.emoji} {topicIntentions?.[t.id] ? topicIntentions[t.id] : t.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <ChartView
+            chartData={chartData}
+            label={selectedTopic
+              ? (topicIntentions?.[selectedTopic] || topics.find(t => t.id === selectedTopic)?.name || 'Topic')
+              : 'Overall wellbeing score'}
+            selectedTopic={selectedTopic}
+          />
+        </>
       )}
 
       {topics.length === 0 && (
@@ -459,22 +493,48 @@ function LinearGridView({ topics, allDays, dataMap, topicTotals, topicIntentions
   )
 }
 
-function ChartView({ chartData }) {
+function ChartView({ chartData, label = 'Overall wellbeing score', selectedTopic }) {
   return (
     <div className="card">
-      <h3 className="text-sm font-semibold text-warm-600 mb-4">Overall wellbeing score</h3>
+      <h3 className="text-sm font-semibold text-warm-600 mb-1 truncate">{label}</h3>
+      {selectedTopic && (
+        <div className="flex gap-3 mb-3">
+          {[['#4e8f50', 'Good'], ['#f59e0b', 'Neutral'], ['#ef4444', 'Hard']].map(([color, lbl]) => (
+            <div key={lbl} className="flex items-center gap-1">
+              <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }} />
+              <span className="text-xs text-warm-400">{lbl}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {!selectedTopic && <p className="text-xs text-warm-400 mb-3">% of topics rated green each day</p>}
       <ResponsiveContainer width="100%" height={200}>
         <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
           <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#bfaa8e' }} tickLine={false} axisLine={false} interval={Math.max(0, Math.floor(chartData.length / 8) - 1)} />
           <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: '#bfaa8e' }} tickLine={false} axisLine={false} />
           <Tooltip
             contentStyle={{ background: '#faf9f6', border: '1px solid #e8e0d2', borderRadius: '12px', fontSize: '12px' }}
-            formatter={(v) => v !== null ? [`${v}%`, 'Score'] : ['No data', '']}
+            formatter={(v, name, props) => {
+              if (v === null) return ['No data', '']
+              if (selectedTopic) {
+                const status = props.payload?.status
+                return [status ? status.charAt(0).toUpperCase() + status.slice(1) : `${v}%`, '']
+              }
+              return [`${v}%`, 'Score']
+            }}
           />
           <Bar dataKey="score" radius={[4, 4, 0, 0]}>
-            {chartData.map((entry, i) => (
-              <Cell key={i} fill={entry.score === null ? '#e8e0d2' : entry.score >= 70 ? '#4e8f50' : entry.score >= 40 ? '#f59e0b' : '#ef4444'} />
-            ))}
+            {chartData.map((entry, i) => {
+              let fill = '#e8e0d2'
+              if (entry.score !== null) {
+                if (selectedTopic) {
+                  fill = entry.status === 'green' ? '#4e8f50' : entry.status === 'yellow' ? '#f59e0b' : '#ef4444'
+                } else {
+                  fill = entry.score >= 70 ? '#4e8f50' : entry.score >= 40 ? '#f59e0b' : '#ef4444'
+                }
+              }
+              return <Cell key={i} fill={fill} />
+            })}
           </Bar>
         </BarChart>
       </ResponsiveContainer>
