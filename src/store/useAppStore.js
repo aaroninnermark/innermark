@@ -380,10 +380,16 @@ const useAppStore = create(
       },
 
       resetTodayCheckin: () => {
+        const { todayCheckin } = get()
+        // Pre-populate entries from the existing check-in so user can edit, not restart
+        const existingEntries = {}
+        todayCheckin?.topic_entries?.forEach(te => {
+          existingEntries[te.topic_id] = { status: te.status, note: te.note || '' }
+        })
         set({
           todayCheckin: null,
-          currentEntries: {},
-          dayNote: '',
+          currentEntries: existingEntries,
+          dayNote: todayCheckin?.day_note || '',
           checkInSubmitted: false,
         })
       },
