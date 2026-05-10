@@ -51,6 +51,12 @@ export default function CheckInPage() {
 
     setSubmitting(true)
 
+    // Safety: never leave user stuck on saving button
+    const safetyTimer = setTimeout(() => {
+      setSubmitting(false)
+      setShowInsight(true)
+    }, 8000)
+
     // Capture entries BEFORE submitting (store clears them after)
     const entries = topics
       .filter(t => currentEntries[t.id]?.status)
@@ -58,6 +64,7 @@ export default function CheckInPage() {
 
     try {
       await submitCheckin()
+      clearTimeout(safetyTimer)
 
       const msg = getInsightMessage(entries, history)
       setInsightMessage(msg)
@@ -65,16 +72,19 @@ export default function CheckInPage() {
       const alertTopics = getCoachingPromptTopics(history, topics)
       setCoachingTopics(alertTopics)
 
-      // Celebrations
-      if (celebrationsEnabled) {
-        const allGreen = entries.every(e => e.status === 'green')
-        if (allGreen) fireConfetti('allGreen')
-        else if (entries.filter(e => e.status === 'green').length >= 2) fireConfetti('default')
-      }
+      // Celebrations — wrapped so errors never block the flow
+      try {
+        if (celebrationsEnabled) {
+          const allGreen = entries.every(e => e.status === 'green')
+          if (allGreen) fireConfetti('allGreen')
+          else if (entries.filter(e => e.status === 'green').length >= 2) fireConfetti('default')
+        }
+      } catch (_) {}
 
       setSubmitting(false)
-      setShowInsight(true) // set AFTER submitting=false so no race
+      setShowInsight(true)
     } catch (err) {
+      clearTimeout(safetyTimer)
       toast.error(err.message || 'Failed to save check-in')
       setSubmitting(false)
     }
