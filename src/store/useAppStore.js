@@ -62,6 +62,8 @@ const useAppStore = create(
         } else {
           set({ isLoading: false, userReady: true })
         }
+        // Mark as booted so tab switches don't show loading screen
+        sessionStorage.setItem('innermark_booted', '1')
 
         supabase.auth.onAuthStateChange(async (event, session) => {
           if (event === 'SIGNED_IN' && session?.user) {

@@ -38,7 +38,9 @@ export default function App() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [user])
 
-  if (isLoading || !userReady) {
+  // Only show loading screen on true first load — not on tab refocus
+  const hasBootedBefore = sessionStorage.getItem('innermark_booted')
+  if ((isLoading || !userReady) && !hasBootedBefore) {
     return <LoadingScreen />
   }
 
