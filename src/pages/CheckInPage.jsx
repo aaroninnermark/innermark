@@ -50,13 +50,14 @@ export default function CheckInPage() {
     }
 
     setSubmitting(true)
+
+    // Capture entries BEFORE submitting (store clears them after)
+    const entries = topics
+      .filter(t => currentEntries[t.id]?.status)
+      .map(t => ({ topic_id: t.id, status: currentEntries[t.id].status }))
+
     try {
       await submitCheckin()
-
-      // Determine insight
-      const entries = topics
-        .filter(t => currentEntries[t.id]?.status)
-        .map(t => ({ topic_id: t.id, status: currentEntries[t.id].status }))
 
       const msg = getInsightMessage(entries, history)
       setInsightMessage(msg)
@@ -71,10 +72,10 @@ export default function CheckInPage() {
         else if (entries.filter(e => e.status === 'green').length >= 2) fireConfetti('default')
       }
 
-      setShowInsight(true)
+      setSubmitting(false)
+      setShowInsight(true) // set AFTER submitting=false so no race
     } catch (err) {
       toast.error(err.message || 'Failed to save check-in')
-    } finally {
       setSubmitting(false)
     }
   }
@@ -115,8 +116,8 @@ export default function CheckInPage() {
     return todayCheckin.topic_entries.every(e => e.status === 'green')
   }, [todayCheckin])
 
-  // Already checked in today
-  if (checkInSubmitted && todayCheckin) {
+  // Already checked in today — only show if insight screen is dismissed
+  if (checkInSubmitted && todayCheckin && !showInsight) {
     return (
       <div className="page-container animate-fade-in">
         <PageHeader
