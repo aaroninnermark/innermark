@@ -460,9 +460,22 @@ export default function OnboardingPage() {
               ))}
             </div>
 
-            <p className="text-center text-xs text-warm-400 mb-5">
+            <p className="text-center text-xs text-warm-400 mb-3">
               All optional — you can always add or edit these later.
             </p>
+
+            {/* Quick add topic shortcut */}
+            {selectedTopics.length < FREE_LIMIT && (
+              <div className="bg-warm-50 rounded-2xl p-3 border border-warm-100 mb-4 flex items-center justify-between">
+                <span className="text-xs text-warm-500">Forgot an area?</span>
+                <button
+                  onClick={() => setStep(3)}
+                  className="text-xs text-sage-600 font-medium hover:text-sage-800"
+                >
+                  ← Go back to add one
+                </button>
+              </div>
+            )}
 
             <div className="flex gap-3">
               <button onClick={() => setStep(4)} className="btn-ghost">Back</button>

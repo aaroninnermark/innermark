@@ -93,14 +93,35 @@ export default function JournalPage() {
     return result
   }, [allNotes, search, filterTopic, filterDate])
 
+  // Build a map of date -> check-in status summary for timeline dots
+  const checkinByDate = useMemo(() => {
+    const map = {}
+    history.forEach(entry => {
+      if (!entry.topic_entries?.length) return
+      const statuses = entry.topic_entries.map(te => te.status)
+      const green = statuses.filter(s => s === 'green').length
+      const red = statuses.filter(s => s === 'red').length
+      const overall = green === statuses.length ? 'green' : red === statuses.length ? 'red' : 'yellow'
+      map[entry.date] = { overall, statuses, count: statuses.length }
+    })
+    return map
+  }, [history])
+
   const grouped = useMemo(() => {
+    // Include dates that have check-ins even if no notes match filter
     const groups = {}
     filtered.forEach(note => {
       if (!groups[note.date]) groups[note.date] = []
       groups[note.date].push(note)
     })
+    // Also add dates with check-ins but no notes (so dots still show in all-time view)
+    if (filterTopic === 'all' && !search.trim()) {
+      Object.keys(checkinByDate).forEach(date => {
+        if (!groups[date]) groups[date] = []
+      })
+    }
     return Object.entries(groups).sort(([a], [b]) => b.localeCompare(a))
-  }, [filtered])
+  }, [filtered, checkinByDate, filterTopic, search])
 
   const STATUS_EMOJI = { green: '🟢', yellow: '🟡', red: '🔴' }
   const today = format(new Date(), 'EEEE, MMMM d')
@@ -215,6 +236,25 @@ export default function JournalPage() {
               <span className="text-xs font-semibold text-warm-500">
                 {format(parseISO(date), 'EEEE, MMMM d, yyyy')}
               </span>
+              {/* Check-in dots for this day */}
+              {checkinByDate[date] && (
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  {checkinByDate[date].statuses.map((s, i) => (
+                    <div
+                      key={i}
+                      className="w-2.5 h-2.5 rounded-full"
+                      style={{
+                        background: s === 'green'
+                          ? 'radial-gradient(circle at 35% 35%, #7fc47f, #3a7a3c)'
+                          : s === 'yellow'
+                          ? 'radial-gradient(circle at 35% 35%, #fcd34d, #d97706)'
+                          : 'radial-gradient(circle at 35% 35%, #f87171, #dc2626)'
+                      }}
+                      title={s}
+                    />
+                  ))}
+                </div>
+              )}
               <div className="flex-1 h-px bg-warm-100" />
             </div>
             <div className="space-y-2">

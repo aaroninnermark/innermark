@@ -44,6 +44,11 @@ export default function TopicCheckinRow({ topic, entry, recentRedCount = 0 }) {
   const icons = ICON_STYLES[iconStyle || 'circles']?.icons || ICON_STYLES.circles.icons
   const intention = topicIntentions?.[topic.id]
 
+  // Hide "set intention" prompt after 7 days if user still hasn't set one
+  const accountAgeMs = user?.created_at ? Date.now() - new Date(user.created_at).getTime() : 0
+  const accountAgeDays = accountAgeMs / (1000 * 60 * 60 * 24)
+  const showIntentionPrompt = !intention && accountAgeDays < 7
+
   async function saveIntention() {
     if (!intentionDraft.trim()) { setEditingIntention(false); return }
     setTopicIntentionLocal(topic.id, intentionDraft.trim())
@@ -110,15 +115,15 @@ export default function TopicCheckinRow({ topic, entry, recentRedCount = 0 }) {
             >
               {intention}
             </button>
-          ) : (
-            /* No intention set — prompt to add */
+          ) : showIntentionPrompt ? (
+            /* No intention set, account < 7 days — show prompt */
             <button
               onClick={() => { setIntentionDraft(''); setEditingIntention(true) }}
               className="text-xs text-sage-500 italic hover:text-sage-700 transition-colors text-left"
             >
               ✏️ What does a good day here look like?
             </button>
-          )}
+          ) : null}
         </div>
 
         {/* Status icons */}
