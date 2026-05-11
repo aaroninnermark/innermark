@@ -35,6 +35,7 @@ const useAppStore = create(
       celebrationsEnabled: true,
       celebrationStyle: 'confetti', // 'confetti' | 'message' | 'both' | 'none'
       iconStyle: 'circles', // 'circles' | 'faces' | 'marks'
+      darkMode: false,
 
       // UI
       activeTab: 'checkin',
@@ -553,6 +554,7 @@ const useAppStore = create(
       setCelebrationsEnabled: (enabled) => set({ celebrationsEnabled: enabled }),
       setCelebrationStyle: (style) => set({ celebrationStyle: style }),
       setIconStyle: (style) => set({ iconStyle: style }),
+      setDarkMode: (enabled) => set({ darkMode: enabled }),
       setActiveTab: (tab) => set({ activeTab: tab }),
     }),
     {
@@ -562,6 +564,7 @@ const useAppStore = create(
         celebrationsEnabled: state.celebrationsEnabled,
         celebrationStyle: state.celebrationStyle,
         iconStyle: state.iconStyle,
+        darkMode: state.darkMode,
         activeTab: state.activeTab,
       }),
     }

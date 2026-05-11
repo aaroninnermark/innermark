@@ -20,6 +20,7 @@ export default function CheckInPage() {
     history,
     isPremium,
     celebrationsEnabled,
+    celebrationStyle,
     topicIntentions,
     setDayNote,
     submitCheckin,
@@ -72,12 +73,18 @@ export default function CheckInPage() {
       const alertTopics = getCoachingPromptTopics(history, topics)
       setCoachingTopics(alertTopics)
 
-      // Celebrations — wrapped so errors never block the flow
+      // Celebrations — respect user's style setting
       try {
-        if (celebrationsEnabled) {
+        const style = celebrationStyle || 'confetti'
+        if (celebrationsEnabled && style !== 'none') {
           const allGreen = entries.every(e => e.status === 'green')
-          if (allGreen) fireConfetti('allGreen')
-          else if (entries.filter(e => e.status === 'green').length >= 2) fireConfetti('default')
+          const mostlyGreen = entries.filter(e => e.status === 'green').length >= 2
+          if (style === 'confetti' || style === 'both') {
+            if (allGreen) fireConfetti('allGreen')
+            else if (mostlyGreen) fireConfetti('default')
+          }
+          // 'message' and 'both' show the insight screen (already always shown)
+          // 'none' skips confetti entirely
         }
       } catch (_) {}
 
@@ -277,6 +284,16 @@ export default function CheckInPage() {
       />
 
       {/* Daily framing */}
+      {/* Streak reminder */}
+      {streak >= 2 && (
+        <div className="flex items-center justify-center gap-2 mb-3">
+          <span className="text-sm">🔥</span>
+          <span className="text-xs font-medium text-sage-700">
+            {streak} day streak — keep it going
+          </span>
+        </div>
+      )}
+
       <p className="text-xs text-warm-400 italic text-center mb-4">
         Check in honestly. No performance, no pressure.
       </p>

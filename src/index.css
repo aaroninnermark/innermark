@@ -12,6 +12,11 @@
     background: linear-gradient(180deg, #faf9f6 0%, #f0f5f0 60%, #e8f0e8 100%);
     min-height: 100vh;
     @apply text-warm-900 font-sans;
+
+  .dark & {
+    background: linear-gradient(180deg, #1a1f1a 0%, #1e2a1e 60%, #1a2a1e 100%);
+    @apply text-gray-100;
+  }
     overscroll-behavior: none;
   }
 
@@ -82,4 +87,42 @@ input[type=number]::-webkit-outer-spin-button {
 ::-webkit-scrollbar-thumb {
   background: #cce1cc;
   border-radius: 2px;
+}
+
+/* Dark mode overrides */
+.dark .card {
+  background-color: #2a3a2a;
+  border-color: #3a4a3a;
+  color: #e8f0e8;
+}
+
+.dark .input-field {
+  background-color: #2a3a2a;
+  border-color: #3a4a3a;
+  color: #e8f0e8;
+}
+
+.dark .tab-bar {
+  background-color: #1a2a1a;
+  border-color: #2a3a2a;
+}
+
+.dark .page-container {
+  color: #e8f0e8;
+}
+
+.dark .bg-warm-50, .dark .bg-warm-100 {
+  background-color: #2a3a2a !important;
+}
+
+.dark .text-warm-400, .dark .text-warm-500 {
+  color: #8aaa8a !important;
+}
+
+.dark .text-warm-700, .dark .text-warm-800 {
+  color: #d0e8d0 !important;
+}
+
+.dark .border-warm-100, .dark .border-warm-200 {
+  border-color: #3a4a3a !important;
 }

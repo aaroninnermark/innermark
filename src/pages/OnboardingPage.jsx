@@ -227,6 +227,9 @@ export default function OnboardingPage() {
             <button onClick={() => setStep(1)} className="btn-primary w-full">
               Let's Begin →
             </button>
+            <button onClick={() => setStep(3)} className="btn-ghost w-full mt-2 text-xs text-warm-300">
+              Skip to topic selection
+            </button>
           </div>
         )}
 

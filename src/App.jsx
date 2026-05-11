@@ -9,9 +9,14 @@ import MainApp from './pages/MainApp'
 import LoadingScreen from './components/ui/LoadingScreen'
 
 export default function App() {
-  const { user, isLoading, userReady, onboardingComplete, initAuth, loadHistory } = useAppStore()
+  const { user, isLoading, userReady, onboardingComplete, darkMode, initAuth, loadHistory } = useAppStore()
   const navigate = useNavigate()
   const location = useLocation()
+
+  // Apply dark mode class to document root
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', !!darkMode)
+  }, [darkMode])
 
   useEffect(() => {
     initAuth()

@@ -5,7 +5,7 @@ import { ICON_STYLES } from '../checkin/TopicCheckinRow'
 import toast from 'react-hot-toast'
 
 export default function SettingsModal({ onClose, onSignOut, isPremium, onUpgrade, userEmail }) {
-  const { reminderTime, celebrationsEnabled, celebrationStyle, iconStyle, setReminderTime, setCelebrationsEnabled, setCelebrationStyle, setIconStyle, updateMarketingConsent, deleteAccount } = useAppStore()
+  const { reminderTime, celebrationsEnabled, celebrationStyle, iconStyle, darkMode, setReminderTime, setCelebrationsEnabled, setCelebrationStyle, setIconStyle, setDarkMode, updateMarketingConsent, deleteAccount } = useAppStore()
   const [activeSection, setActiveSection] = useState('main') // main | topics | account
   const [marketingConsent, setMarketingConsentLocal] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -161,6 +161,16 @@ export default function SettingsModal({ onClose, onSignOut, isPremium, onUpgrade
                   <span className="text-sm font-medium text-warm-700">👤 Account & Privacy</span>
                   <span className="text-warm-300">→</span>
                 </button>
+
+                <div className="card">
+                  <label className="flex items-center justify-between cursor-pointer">
+                    <div>
+                      <p className="text-sm font-medium text-warm-700">🌙 Dark Mode</p>
+                      <p className="text-xs text-warm-400">Easier on the eyes at night</p>
+                    </div>
+                    <ToggleSwitch checked={!!darkMode} onChange={setDarkMode} />
+                  </label>
+                </div>
 
                 <div className="card">
                   <label className="flex items-center justify-between">
