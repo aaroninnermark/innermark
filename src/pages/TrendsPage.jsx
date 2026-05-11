@@ -324,7 +324,7 @@ function CalendarGridView({ topics, allDays, dataMap, topicTotals, startDate, to
                   {topic.emoji} {topic.name}
                 </span>
                 {topicIntentions?.[topic.id] ? (
-                  <span className="text-sm font-medium text-warm-800 block truncate">
+                  <span className="text-sm font-medium text-warm-800 block leading-snug">
                     {topicIntentions[topic.id]}
                   </span>
                 ) : null}
@@ -438,7 +438,7 @@ function LinearGridView({ topics, allDays, dataMap, topicTotals, topicIntentions
                 {topic.emoji} {topic.name}
               </span>
               {topicIntentions?.[topic.id] && (
-                <span className="text-sm font-medium text-warm-800 block truncate">
+                <span className="text-sm font-medium text-warm-800 block leading-snug">
                   {topicIntentions[topic.id]}
                 </span>
               )}
@@ -496,7 +496,7 @@ function LinearGridView({ topics, allDays, dataMap, topicTotals, topicIntentions
 function ChartView({ chartData, label = 'Overall wellbeing score', selectedTopic }) {
   return (
     <div className="card">
-      <h3 className="text-sm font-semibold text-warm-600 mb-1 truncate">{label}</h3>
+      <h3 className="text-sm font-semibold text-warm-600 mb-1 leading-snug">{label}</h3>
       {selectedTopic && (
         <div className="flex gap-3 mb-3">
           {[['#4e8f50', 'Good'], ['#f59e0b', 'Neutral'], ['#ef4444', 'Hard']].map(([color, lbl]) => (

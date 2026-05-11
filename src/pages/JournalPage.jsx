@@ -324,7 +324,7 @@ export default function JournalPage() {
                               <>
                                 <span className="text-xs text-warm-400 uppercase tracking-wide block">{note.topicName}</span>
                                 {note.topicId && topicIntentions?.[note.topicId] && (
-                                  <span className="text-xs font-medium text-warm-700 block truncate">{topicIntentions[note.topicId]}</span>
+                                  <span className="text-xs font-medium text-warm-700 block leading-snug">{topicIntentions[note.topicId]}</span>
                                 )}
                               </>
                             )}

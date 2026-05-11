@@ -185,7 +185,7 @@ export default function CheckInPage() {
                     {intention ? (
                       <>
                         <span className="text-xs text-warm-400 uppercase tracking-wide block">{topic.name}</span>
-                        <span className="text-sm text-warm-700 block truncate">{intention}</span>
+                        <span className="text-sm text-warm-700 block leading-snug">{intention}</span>
                       </>
                     ) : (
                       <span className="text-sm text-warm-700">{topic.name}</span>
