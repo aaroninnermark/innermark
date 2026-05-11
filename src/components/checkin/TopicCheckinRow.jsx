@@ -19,6 +19,31 @@ export const ICON_STYLES = {
     icons: { red: '⭕', yellow: '✅', green: '⭐' },
     preview: ['⭕', '✅', '⭐'],
   },
+  weather: {
+    label: 'Weather',
+    icons: { red: '⛈️', yellow: '🌤️', green: '☀️' },
+    preview: ['⛈️', '🌤️', '☀️'],
+  },
+  elements: {
+    label: 'Elements',
+    icons: { red: '🌊', yellow: '💧', green: '🔥' },
+    preview: ['🌊', '💧', '🔥'],
+  },
+  moon: {
+    label: 'Moon Phases',
+    icons: { red: '🌑', yellow: '🌙', green: '🌕' },
+    preview: ['🌑', '🌙', '🌕'],
+  },
+  hearts: {
+    label: 'Hearts',
+    icons: { red: '❤️', yellow: '💛', green: '💚' },
+    preview: ['❤️', '💛', '💚'],
+  },
+  growth: {
+    label: 'Growth',
+    icons: { red: '🌱', yellow: '🌿', green: '🌳' },
+    preview: ['🌱', '🌿', '🌳'],
+  },
 }
 
 const STATUS_BG = {

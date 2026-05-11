@@ -5,7 +5,7 @@ import { getInsightMessage, getCoachingPromptTopics } from '../lib/insights'
 import { fireConfetti } from '../lib/confetti'
 import { getTodaysPrompt } from '../lib/prompts'
 import toast from 'react-hot-toast'
-import TopicCheckinRow from '../components/checkin/TopicCheckinRow'
+import TopicCheckinRow, { ICON_STYLES } from '../components/checkin/TopicCheckinRow'
 import InsightScreen from '../components/checkin/InsightScreen'
 import SettingsModal from '../components/ui/SettingsModal'
 import PremiumPrompt from '../components/ui/PremiumPrompt'
@@ -423,11 +423,6 @@ function PageHeader({ today, onSettings }) {
 
 function StatusDot({ status }) {
   const { iconStyle } = useAppStore()
-  const ICONS = {
-    circles: { red: '🔴', yellow: '🟡', green: '🟢', null: '⚪' },
-    faces:   { red: '😢', yellow: '😐', green: '😊', null: '⚪' },
-    marks:   { red: '⭕', yellow: '✅', green: '⭐', null: '⚪' },
-  }
-  const icons = ICONS[iconStyle || 'circles']
-  return <span className="text-lg">{icons[status] || icons.null}</span>
+  const style = ICON_STYLES[iconStyle || 'circles'] || ICON_STYLES.circles
+  return <span className="text-lg">{status ? style.icons[status] : '⚪'}</span>
 }
