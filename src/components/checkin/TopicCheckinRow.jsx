@@ -74,6 +74,13 @@ export default function TopicCheckinRow({ topic, entry, recentRedCount = 0 }) {
   const accountAgeDays = accountAgeMs / (1000 * 60 * 60 * 24)
   const showIntentionPrompt = !intention && accountAgeDays < 7
 
+  async function triggerHaptic() {
+    try {
+      const { Haptics, ImpactStyle } = await import('@capacitor/haptics')
+      await Haptics.impact({ style: ImpactStyle.Light })
+    } catch { /* web — no haptics */ }
+  }
+
   async function saveIntention() {
     if (!intentionDraft.trim()) { setEditingIntention(false); return }
     setTopicIntentionLocal(topic.id, intentionDraft.trim())
@@ -156,7 +163,7 @@ export default function TopicCheckinRow({ topic, entry, recentRedCount = 0 }) {
           {(['red', 'yellow', 'green']).map(status => (
             <button
               key={status}
-              onClick={() => setEntryStatus(topic.id, selectedStatus === status ? null : status)}
+              onClick={() => { triggerHaptic(); setEntryStatus(topic.id, selectedStatus === status ? null : status) }}
               className={clsx(
                 'text-2xl transition-all duration-150 active:scale-90 select-none leading-none',
                 selectedStatus === status ? 'scale-110 drop-shadow-md' : 'opacity-60 hover:opacity-100'
