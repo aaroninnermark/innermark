@@ -550,7 +550,16 @@ const useAppStore = create(
       },
 
       // --- SETTINGS ---
-      setReminderTime: (time) => set({ reminderTime: time }),
+      setReminderTime: async (time) => {
+        set({ reminderTime: time })
+        // Also persist to Supabase so the email function can read it
+        const { user } = get()
+        if (isSupabaseConfigured && user) {
+          await supabase.from('profiles')
+            .update({ reminder_time: time })
+            .eq('id', user.id)
+        }
+      },
       setCelebrationsEnabled: (enabled) => set({ celebrationsEnabled: enabled }),
       setCelebrationStyle: (style) => set({ celebrationStyle: style }),
       setIconStyle: (style) => set({ iconStyle: style }),
