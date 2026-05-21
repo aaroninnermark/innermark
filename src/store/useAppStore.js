@@ -32,6 +32,7 @@ const useAppStore = create(
 
       // Settings
       reminderTime: null,
+      reminderTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       celebrationsEnabled: true,
       celebrationStyle: 'confetti', // 'confetti' | 'message' | 'both' | 'none'
       iconStyle: 'circles', // 'circles' | 'faces' | 'marks'
@@ -552,11 +553,20 @@ const useAppStore = create(
       // --- SETTINGS ---
       setReminderTime: async (time) => {
         set({ reminderTime: time })
-        // Also persist to Supabase so the email function can read it
-        const { user } = get()
+        const { user, reminderTimezone } = get()
         if (isSupabaseConfigured && user) {
           await supabase.from('profiles')
-            .update({ reminder_time: time })
+            .update({ reminder_time: time, reminder_timezone: reminderTimezone || 'UTC' })
+            .eq('id', user.id)
+        }
+      },
+
+      setReminderTimezone: async (tz) => {
+        set({ reminderTimezone: tz })
+        const { user, reminderTime } = get()
+        if (isSupabaseConfigured && user && reminderTime) {
+          await supabase.from('profiles')
+            .update({ reminder_timezone: tz })
             .eq('id', user.id)
         }
       },
@@ -570,6 +580,7 @@ const useAppStore = create(
       name: 'innermark-storage',
       partialize: (state) => ({
         reminderTime: state.reminderTime,
+        reminderTimezone: state.reminderTimezone,
         celebrationsEnabled: state.celebrationsEnabled,
         celebrationStyle: state.celebrationStyle,
         iconStyle: state.iconStyle,

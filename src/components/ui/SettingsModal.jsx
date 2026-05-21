@@ -5,7 +5,7 @@ import { ICON_STYLES } from '../checkin/TopicCheckinRow'
 import toast from 'react-hot-toast'
 
 export default function SettingsModal({ onClose, onSignOut, isPremium, onUpgrade, userEmail }) {
-  const { reminderTime, celebrationsEnabled, celebrationStyle, iconStyle, darkMode, setReminderTime, setCelebrationsEnabled, setCelebrationStyle, setIconStyle, setDarkMode, updateMarketingConsent, deleteAccount } = useAppStore()
+  const { reminderTime, reminderTimezone, celebrationsEnabled, celebrationStyle, iconStyle, darkMode, setReminderTime, setReminderTimezone, setCelebrationsEnabled, setCelebrationStyle, setIconStyle, setDarkMode, updateMarketingConsent, deleteAccount } = useAppStore()
   const [activeSection, setActiveSection] = useState('main') // main | topics | account
   const [marketingConsent, setMarketingConsentLocal] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -173,21 +173,65 @@ export default function SettingsModal({ onClose, onSignOut, isPremium, onUpgrade
                 </div>
 
                 <div className="card">
-                  <label className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-warm-700">🔔 Daily Reminder</p>
-                      <p className="text-xs text-warm-400">Web push notification</p>
+                  <p className="text-sm font-medium text-warm-700 mb-3">🔔 Daily Reminder</p>
+                  <div className="flex gap-2 mb-3">
+                    <div className="flex-1">
+                      <p className="text-xs text-warm-400 mb-1">Time</p>
+                      <input
+                        type="time"
+                        value={reminderTime || '20:00'}
+                        onChange={e => {
+                          setReminderTime(e.target.value)
+                          requestNotificationPermission()
+                        }}
+                        className="text-sm text-warm-700 bg-transparent border border-warm-200 rounded-lg px-2 py-1.5 w-full"
+                      />
                     </div>
-                    <input
-                      type="time"
-                      value={reminderTime || '20:00'}
-                      onChange={e => {
-                        setReminderTime(e.target.value)
-                        requestNotificationPermission()
-                      }}
-                      className="text-sm text-warm-700 bg-transparent border border-warm-200 rounded-lg px-2 py-1"
-                    />
-                  </label>
+                  </div>
+                  <div>
+                    <p className="text-xs text-warm-400 mb-1">Timezone</p>
+                    <select
+                      value={reminderTimezone || Intl.DateTimeFormat().resolvedOptions().timeZone}
+                      onChange={e => setReminderTimezone(e.target.value)}
+                      className="w-full text-xs text-warm-700 bg-transparent border border-warm-200 rounded-lg px-2 py-1.5"
+                    >
+                      {[
+                        ['Pacific/Honolulu',    'Hawaii (HST, UTC-10)'],
+                        ['America/Anchorage',   'Alaska (AKST, UTC-9)'],
+                        ['America/Los_Angeles', 'Pacific (PST, UTC-8)'],
+                        ['America/Phoenix',     'Arizona (MST, UTC-7)'],
+                        ['America/Denver',      'Mountain (MST/MDT, UTC-7/6)'],
+                        ['America/Chicago',     'Central (CST/CDT, UTC-6/5)'],
+                        ['America/New_York',    'Eastern (EST/EDT, UTC-5/4)'],
+                        ['America/Toronto',     'Toronto (EST/EDT, UTC-5/4)'],
+                        ['America/Vancouver',   'Vancouver (PST/PDT, UTC-8/7)'],
+                        ['America/Sao_Paulo',   'Brazil (BRT, UTC-3)'],
+                        ['America/Argentina/Buenos_Aires', 'Argentina (ART, UTC-3)'],
+                        ['Europe/London',       'London (GMT/BST, UTC+0/1)'],
+                        ['Europe/Paris',        'Paris (CET/CEST, UTC+1/2)'],
+                        ['Europe/Berlin',       'Berlin (CET/CEST, UTC+1/2)'],
+                        ['Europe/Amsterdam',    'Amsterdam (CET/CEST, UTC+1/2)'],
+                        ['Europe/Stockholm',    'Stockholm (CET/CEST, UTC+1/2)'],
+                        ['Europe/Rome',         'Rome (CET/CEST, UTC+1/2)'],
+                        ['Europe/Madrid',       'Madrid (CET/CEST, UTC+1/2)'],
+                        ['Europe/Athens',       'Athens (EET/EEST, UTC+2/3)'],
+                        ['Europe/Helsinki',     'Helsinki (EET/EEST, UTC+2/3)'],
+                        ['Europe/Moscow',       'Moscow (MSK, UTC+3)'],
+                        ['Asia/Dubai',          'Dubai (GST, UTC+4)'],
+                        ['Asia/Karachi',        'Pakistan (PKT, UTC+5)'],
+                        ['Asia/Kolkata',        'India (IST, UTC+5:30)'],
+                        ['Asia/Bangkok',        'Bangkok (ICT, UTC+7)'],
+                        ['Asia/Singapore',      'Singapore (SGT, UTC+8)'],
+                        ['Asia/Shanghai',       'China (CST, UTC+8)'],
+                        ['Asia/Tokyo',          'Tokyo (JST, UTC+9)'],
+                        ['Australia/Sydney',    'Sydney (AEST/AEDT, UTC+10/11)'],
+                        ['Pacific/Auckland',    'Auckland (NZST/NZDT, UTC+12/13)'],
+                      ].map(([tz, label]) => (
+                        <option key={tz} value={tz}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <p className="text-xs text-warm-300 mt-2">You'll get an email at this time if you haven't checked in.</p>
                 </div>
 
                 <div className="card">
